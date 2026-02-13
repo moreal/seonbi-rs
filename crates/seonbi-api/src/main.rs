@@ -12,18 +12,18 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::any;
 use axum::{Json, Router};
 use clap::Parser;
-use serde::{Deserialize, Serialize};
 use seonbi::{
     ArrowOption, CiteOption, Configuration, HanjaOption, HanjaReadingOption, HanjaRenderingOption,
-    QuoteOption, StopOption, parse_content_type, presets,
-    south_korean_dictionary, supported_content_types, transform_html_text,
+    QuoteOption, StopOption, parse_content_type, presets, south_korean_dictionary,
+    supported_content_types, transform_html_text,
 };
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Parser)]
 #[command(name = "seonbi-api")]
 #[command(about = "Seonbi HTTP API server")]
 struct Args {
-    #[arg(short = 'H', long, default_value = "0.0.0.0")]
+    #[arg(short = 'H', long, default_value = "*")]
     host: String,
     #[arg(short = 'p', long, default_value_t = 3800)]
     port: u16,
@@ -115,13 +115,11 @@ async fn main() -> ExitCode {
         None => None,
     };
 
-    let state = AppState {
-        allow_origin,
-        debug_delay_ms: args.debug_delay,
-    };
+    let state = AppState { allow_origin, debug_delay_ms: args.debug_delay };
     let app = router(state);
 
-    let addr: SocketAddr = match format!("{}:{}", args.host, args.port).parse() {
+    let host = normalize_host_for_bind(&args.host);
+    let addr: SocketAddr = match format!("{host}:{}", args.port).parse() {
         Ok(addr) => addr,
         Err(err) => {
             eprintln!("invalid host/port: {err}");
@@ -145,14 +143,10 @@ async fn main() -> ExitCode {
 }
 
 fn router(state: AppState) -> Router {
-    Router::new().route("/", any(handle_root)).with_state(state)
+    Router::new().route("/", any(handle_root)).fallback(any(handle_root)).with_state(state)
 }
 
-async fn handle_root(
-    State(state): State<AppState>,
-    method: Method,
-    body: Bytes,
-) -> Response {
+async fn handle_root(State(state): State<AppState>, method: Method, body: Bytes) -> Response {
     match method {
         Method::POST => handle_post(state, body).await,
         Method::OPTIONS => handle_options(state).await,
@@ -171,10 +165,7 @@ async fn handle_post(state: AppState, body: Bytes) -> Response {
             return json_response(
                 &state,
                 StatusCode::BAD_REQUEST,
-                &ErrorResponse {
-                    success: false,
-                    message: err.to_string(),
-                },
+                &ErrorResponse { success: false, message: err.to_string() },
             );
         }
     };
@@ -185,29 +176,19 @@ async fn handle_post(state: AppState, body: Bytes) -> Response {
             return json_response(
                 &state,
                 StatusCode::BAD_REQUEST,
-                &ErrorResponse {
-                    success: false,
-                    message: msg,
-                },
+                &ErrorResponse { success: false, message: msg },
             );
         }
     };
 
-    let ParsedInput {
-        content,
-        config,
-        warnings,
-    } = parsed;
+    let ParsedInput { content, config, warnings } = parsed;
     let transformed = match transform_html_text(&config, &content) {
         Ok(result) => result,
         Err(err) => {
             return json_response(
                 &state,
                 StatusCode::BAD_REQUEST,
-                &ErrorResponse {
-                    success: false,
-                    message: err.to_string(),
-                },
+                &ErrorResponse { success: false, message: err.to_string() },
             );
         }
     };
@@ -236,10 +217,7 @@ async fn handle_method_not_allowed(state: AppState, method: Method) -> Response 
     json_response(
         &state,
         StatusCode::METHOD_NOT_ALLOWED,
-        &ErrorResponse {
-            success: false,
-            message: format!("Unsupported method: {method}"),
-        },
+        &ErrorResponse { success: false, message: format!("Unsupported method: {method}") },
     )
 }
 
@@ -249,10 +227,7 @@ fn json_response<T: Serialize>(state: &AppState, status: StatusCode, value: &T) 
 
     let headers = response.headers_mut();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    headers.insert(
-        SERVER,
-        HeaderValue::from_static(concat!("Seonbi-rs/", env!("CARGO_PKG_VERSION"))),
-    );
+    headers.insert(SERVER, HeaderValue::from_static(concat!("Seonbi/", env!("CARGO_PKG_VERSION"))));
     headers.insert(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"));
     headers.insert(VARY, HeaderValue::from_static("origin"));
     if let Some(origin) = &state.allow_origin {
@@ -273,9 +248,7 @@ fn parse_input(input: ApiInput) -> Result<ParsedInput, String> {
     let content = match (input.content, input.source_html) {
         (Some(content), _) => content,
         (None, Some(source_html)) => {
-            warnings.push(
-                "key \"sourceHtml\" is deprecated in favour of \"content\"".to_string(),
-            );
+            warnings.push("key \"sourceHtml\" is deprecated in favour of \"content\"".to_string());
             source_html
         }
         (None, None) => return Err("key \"content\" not present".to_string()),
@@ -285,11 +258,7 @@ fn parse_input(input: ApiInput) -> Result<ParsedInput, String> {
         content_type
     } else if let Some(xhtml) = input.xhtml {
         warnings.push("key \"xhtml\" is deprecated in favour of \"contentType\"".to_string());
-        if xhtml {
-            "application/xhtml+xml".to_string()
-        } else {
-            "text/html".to_string()
-        }
+        if xhtml { "application/xhtml+xml".to_string() } else { "text/html".to_string() }
     } else {
         "text/html".to_string()
     };
@@ -318,10 +287,9 @@ fn parse_input(input: ApiInput) -> Result<ParsedInput, String> {
             content_type: content_type.clone(),
             quote: parse_quote_option(input.quote.as_deref())?,
             cite: parse_cite_option(input.cite.as_deref())?,
-            arrow: input.arrow.map(|a| ArrowOption {
-                bidir_arrow: a.bidir,
-                double_arrow: a.double,
-            }),
+            arrow: input
+                .arrow
+                .map(|a| ArrowOption { bidir_arrow: a.bidir, double_arrow: a.double }),
             ellipsis: input.ellipsis.unwrap_or(false),
             em_dash: input.em_dash.unwrap_or(false),
             stop: parse_stop_option(input.stop.as_deref())?,
@@ -330,11 +298,7 @@ fn parse_input(input: ApiInput) -> Result<ParsedInput, String> {
     };
     config.content_type = content_type;
 
-    Ok(ParsedInput {
-        content,
-        config,
-        warnings,
-    })
+    Ok(ParsedInput { content, config, warnings })
 }
 
 fn parse_quote_option(value: Option<&str>) -> Result<Option<QuoteOption>, String> {
@@ -420,6 +384,13 @@ fn apply_warning_comments(warnings: &[String], content: &str) -> String {
     format!("<!--\n{}\n-->{content}", warnings.join("\n"))
 }
 
+fn normalize_host_for_bind(host: &str) -> String {
+    match host.trim() {
+        "*" | "[::/0]" | "[::]" => "::".to_string(),
+        other => other.to_string(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -429,10 +400,7 @@ mod tests {
     use tower::ServiceExt;
 
     fn test_state() -> AppState {
-        AppState {
-            allow_origin: None,
-            debug_delay_ms: 0,
-        }
+        AppState { allow_origin: None, debug_delay_ms: 0 }
     }
 
     #[tokio::test]
@@ -442,9 +410,7 @@ mod tests {
             .method("POST")
             .uri("/")
             .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                json!({"content":"<p>漢字</p>","preset":"ko-kr"}).to_string(),
-            ))
+            .body(Body::from(json!({"content":"<p>漢字</p>","preset":"ko-kr"}).to_string()))
             .unwrap();
 
         let res = app.oneshot(req).await.unwrap();
@@ -463,26 +429,23 @@ mod tests {
             .method("POST")
             .uri("/")
             .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                json!({"sourceHtml":"<p>漢字</p>","preset":"ko-kr"}).to_string(),
-            ))
+            .body(Body::from(json!({"sourceHtml":"<p>漢字</p>","preset":"ko-kr"}).to_string()))
             .unwrap();
 
         let res = app.oneshot(req).await.unwrap();
         assert_eq!(res.status(), StatusCode::OK);
         let body = to_bytes(res.into_body(), usize::MAX).await.unwrap();
         let parsed: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(parsed["warnings"][0], "key \"sourceHtml\" is deprecated in favour of \"content\"");
+        assert_eq!(
+            parsed["warnings"][0],
+            "key \"sourceHtml\" is deprecated in favour of \"content\""
+        );
     }
 
     #[tokio::test]
     async fn options_returns_ok() {
         let app = router(test_state());
-        let req = Request::builder()
-            .method("OPTIONS")
-            .uri("/")
-            .body(Body::empty())
-            .unwrap();
+        let req = Request::builder().method("OPTIONS").uri("/").body(Body::empty()).unwrap();
 
         let res = app.oneshot(req).await.unwrap();
         assert_eq!(res.status(), StatusCode::OK);
@@ -491,11 +454,7 @@ mod tests {
     #[tokio::test]
     async fn unsupported_method_returns_405() {
         let app = router(test_state());
-        let req = Request::builder()
-            .method("PUT")
-            .uri("/")
-            .body(Body::empty())
-            .unwrap();
+        let req = Request::builder().method("PUT").uri("/").body(Body::empty()).unwrap();
 
         let res = app.oneshot(req).await.unwrap();
         assert_eq!(res.status(), StatusCode::METHOD_NOT_ALLOWED);
