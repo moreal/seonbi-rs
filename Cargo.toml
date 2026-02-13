@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/seonbi"]
+members = ["crates/seonbi", "crates/seonbi-cli"]
 resolver = "2"
 
 [workspace.package]
@@ -18,3 +18,4 @@ thiserror = "2.0"
 html-escape = "0.2"
 htmlentity = "1.3"
 pretty_assertions = "1.4"
+clap = { version = "4.5", features = ["derive"] }
