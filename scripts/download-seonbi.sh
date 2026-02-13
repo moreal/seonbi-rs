@@ -2,9 +2,65 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEST_DIR="${ROOT_DIR}/.tools/original/seonbi-0.5.0"
 ARCHIVE_DIR="${ROOT_DIR}/.tools/original"
-VERSION="0.5.0"
+DEFAULT_VERSION="0.5.0"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [VERSION]
+       $(basename "$0") --version VERSION
+
+Download a seonbi release binary for the current platform.
+
+Arguments:
+  VERSION             Release version (default: ${DEFAULT_VERSION})
+
+Options:
+  -v, --version VER   Release version
+  -h, --help          Show this help
+EOF
+}
+
+VERSION="${DEFAULT_VERSION}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -v|--version)
+      if [[ $# -lt 2 ]]; then
+        echo "missing value for $1" >&2
+        exit 1
+      fi
+      VERSION="$2"
+      shift 2
+      ;;
+    -*)
+      echo "unknown option: $1" >&2
+      echo "run with --help for usage" >&2
+      exit 1
+      ;;
+    *)
+      if [[ "${VERSION}" != "${DEFAULT_VERSION}" ]]; then
+        echo "version already provided: ${VERSION}" >&2
+        echo "run with --help for usage" >&2
+        exit 1
+      fi
+      VERSION="$1"
+      shift
+      ;;
+  esac
+done
+
+VERSION="${VERSION#v}"
+if [[ -z "${VERSION}" ]]; then
+  echo "version must not be empty" >&2
+  exit 1
+fi
+
+DEST_DIR="${ROOT_DIR}/.tools/original/seonbi-${VERSION}"
 
 os="$(uname -s)"
 arch="$(uname -m)"
