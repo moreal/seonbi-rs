@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/seonbi", "crates/seonbi-cli"]
+members = ["crates/seonbi", "crates/seonbi-cli", "crates/seonbi-api"]
 resolver = "2"
 
 [workspace.package]
@@ -19,3 +19,6 @@ html-escape = "0.2"
 htmlentity = "1.3"
 pretty_assertions = "1.4"
 clap = { version = "4.5", features = ["derive"] }
+axum = "0.8"
+tokio = { version = "1.48", features = ["macros", "rt-multi-thread", "time", "net"] }
+tower = { version = "0.5", features = ["util"] }
