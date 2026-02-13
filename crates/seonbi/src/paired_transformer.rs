@@ -1,4 +1,4 @@
-use crate::html::{normalize_text, HtmlEntity, HtmlTagStack};
+use crate::html::{HtmlEntity, HtmlTagStack, normalize_text};
 
 #[derive(Clone)]
 struct Unclosed<M> {
@@ -7,11 +7,11 @@ struct Unclosed<M> {
 }
 
 pub struct PairedTransformer<M> {
-    pub ignores_tag_stack: fn(&HtmlTagStack) -> bool,
-    pub match_start: fn(&[M], &str) -> Option<(M, String, String, String)>,
-    pub match_end: fn(&str) -> Option<(M, String, String, String)>,
-    pub are_matches_paired: fn(&M, &M) -> bool,
-    pub transform_pair: fn(&M, &M, Vec<HtmlEntity>) -> Vec<HtmlEntity>,
+    pub ignores_tag_stack: Box<dyn Fn(&HtmlTagStack) -> bool>,
+    pub match_start: Box<dyn Fn(&[M], &str) -> Option<(M, String, String, String)>>,
+    pub match_end: Box<dyn Fn(&str) -> Option<(M, String, String, String)>>,
+    pub are_matches_paired: Box<dyn Fn(&M, &M) -> bool>,
+    pub transform_pair: Box<dyn Fn(&M, &M, Vec<HtmlEntity>) -> Vec<HtmlEntity>>,
 }
 
 pub fn transform_pairs<M: Clone>(
@@ -38,9 +38,15 @@ fn iter<M: Clone>(
     let first = rest.remove(0);
 
     match first {
-        HtmlEntity::Text { tag_stack, raw_text } => {
+        HtmlEntity::Text {
+            tag_stack,
+            raw_text,
+        } => {
             let prev_matches: Vec<M> = stack.iter().map(|u| u.m.clone()).collect();
-            let start_match = (t.match_start)(&prev_matches.into_iter().rev().collect::<Vec<_>>(), &raw_text);
+            let start_match = (t.match_start)(
+                &prev_matches.into_iter().rev().collect::<Vec<_>>(),
+                &raw_text,
+            );
             let end_match = (t.match_end)(&raw_text);
 
             match (start_match, end_match) {
@@ -50,7 +56,10 @@ fn iter<M: Clone>(
                 {
                     unroll(t, stack, captured.clone(), tag_stack, rest)
                 }
-                (Some(ref captured @ (_, ref pre, _, _)), Some(ref captured2 @ (ref m2, ref pre2, _, _))) => {
+                (
+                    Some(ref captured @ (_, ref pre, _, _)),
+                    Some(ref captured2 @ (ref m2, ref pre2, _, _)),
+                ) => {
                     if pre.len() >= pre2.len()
                         && stack.iter().any(|u| (t.are_matches_paired)(&u.m, m2))
                     {
@@ -61,13 +70,22 @@ fn iter<M: Clone>(
                 }
                 (None, _) => {
                     if stack.is_empty() {
-                        let mut out = vec![HtmlEntity::Text { tag_stack, raw_text }];
+                        let mut out = vec![HtmlEntity::Text {
+                            tag_stack,
+                            raw_text,
+                        }];
                         out.extend(iter(t, stack, rest));
                         out
                     } else {
                         let mut stack2 = stack;
                         if let Some(top) = stack2.first_mut() {
-                            top.buffer.insert(0, HtmlEntity::Text { tag_stack, raw_text });
+                            top.buffer.insert(
+                                0,
+                                HtmlEntity::Text {
+                                    tag_stack,
+                                    raw_text,
+                                },
+                            );
                         }
                         iter(t, stack2, rest)
                     }
@@ -214,7 +232,11 @@ fn unstack<M: Clone>(stack: Vec<Unclosed<M>>) -> Vec<HtmlEntity> {
     out
 }
 
-fn prepend_text(tag_stack: &HtmlTagStack, text: &str, mut entities: Vec<HtmlEntity>) -> Vec<HtmlEntity> {
+fn prepend_text(
+    tag_stack: &HtmlTagStack,
+    text: &str,
+    mut entities: Vec<HtmlEntity>,
+) -> Vec<HtmlEntity> {
     if text.is_empty() {
         return entities;
     }
