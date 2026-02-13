@@ -1,22 +1,23 @@
 use std::collections::BTreeMap;
 use std::path::Path;
+use std::sync::Arc;
 
 use crate::content_types::{
-    content_type_from_text, content_type_text, content_types, transform_with_content_type, ContentType,
-    ContentTypeError,
+    ContentType, ContentTypeError, content_type_from_text, content_type_text, content_types,
+    transform_with_content_type,
 };
 use crate::hanja::{
-    hangul_only, hanja_in_parentheses, hanja_in_ruby, phoneticize_hanja,
-    phoneticize_hanja_word, phoneticize_hanja_word_with_initial_sound_law,
-    HanjaDictionary, HanjaPhoneticization,
+    HanjaDictionary, HanjaPhoneticization, hangul_only, hanja_in_parentheses, hanja_in_ruby,
+    phoneticize_hanja, phoneticize_hanja_word, phoneticize_hanja_word_with_initial_sound_law,
+    with_dictionary,
 };
 use crate::html::HtmlEntity;
 use crate::punctuation::{
-    angle_quotes, corner_brackets, curved_quotes, curved_single_quotes_with_q, guillemets,
-    horizontal_corner_brackets, horizontal_corner_brackets_with_q, horizontal_stops,
-    horizontal_stops_with_slashes, normalize_stops, quote_citation, transform_arrow,
-    transform_ellipsis, transform_em_dash, transform_quote, vertical_corner_brackets,
-    vertical_corner_brackets_with_q, vertical_stops, ArrowTransformationOption,
+    ArrowTransformationOption, angle_quotes, corner_brackets, curved_quotes,
+    curved_single_quotes_with_q, guillemets, horizontal_corner_brackets,
+    horizontal_corner_brackets_with_q, horizontal_stops, horizontal_stops_with_slashes,
+    normalize_stops, quote_citation, transform_arrow, transform_ellipsis, transform_em_dash,
+    transform_quote, vertical_corner_brackets, vertical_corner_brackets_with_q, vertical_stops,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -100,8 +101,15 @@ impl std::fmt::Debug for Configuration {
     }
 }
 
-pub fn transform_html_text(config: &Configuration, input: &str) -> Result<String, ContentTypeError> {
-    transform_with_content_type(&config.content_type, |entities| to_transformer(config, entities), input)
+pub fn transform_html_text(
+    config: &Configuration,
+    input: &str,
+) -> Result<String, ContentTypeError> {
+    transform_with_content_type(
+        &config.content_type,
+        |entities| to_transformer(config, entities),
+        input,
+    )
 }
 
 fn to_transformer(config: &Configuration, mut entities: Vec<HtmlEntity>) -> Vec<HtmlEntity> {
@@ -111,59 +119,8 @@ fn to_transformer(config: &Configuration, mut entities: Vec<HtmlEntity>) -> Vec<
         }
     }
 
-    if let Some(quote) = &config.quote {
-        entities = transform_quote(
-            &match quote {
-                QuoteOption::CurvedQuotes => curved_quotes(),
-                QuoteOption::VerticalCornerBrackets => vertical_corner_brackets(),
-                QuoteOption::HorizontalCornerBrackets => horizontal_corner_brackets(),
-                QuoteOption::Guillemets => guillemets(),
-                QuoteOption::CurvedSingleQuotesWithQ => curved_single_quotes_with_q(),
-                QuoteOption::VerticalCornerBracketsWithQ => vertical_corner_brackets_with_q(),
-                QuoteOption::HorizontalCornerBracketsWithQ => horizontal_corner_brackets_with_q(),
-            },
-            entities,
-        );
-    }
-
-    if let Some(cite) = &config.cite {
-        let mut quotes = match cite {
-            CiteOption::AngleQuotes | CiteOption::AngleQuotesWithCite => angle_quotes(),
-            CiteOption::CornerBrackets | CiteOption::CornerBracketsWithCite => corner_brackets(),
-        };
-        if matches!(cite, CiteOption::AngleQuotes | CiteOption::CornerBrackets) {
-            quotes.html_element = None;
-        }
-        entities = quote_citation(&quotes, entities);
-    }
-
-    if let Some(arrow) = &config.arrow {
-        let mut options = std::collections::BTreeSet::new();
-        if arrow.bidir_arrow {
-            options.insert(ArrowTransformationOption::LeftRight);
-        }
-        if arrow.double_arrow {
-            options.insert(ArrowTransformationOption::DoubleArrow);
-        }
-        entities = transform_arrow(&options, entities);
-    }
-
-    if let Some(stop) = &config.stop {
-        let stops = match stop {
-            StopOption::Horizontal => horizontal_stops(),
-            StopOption::HorizontalWithSlashes => horizontal_stops_with_slashes(),
-            StopOption::Vertical => vertical_stops(),
-        };
-        entities = normalize_stops(&stops, entities);
-    }
-
-    if config.ellipsis {
-        entities = transform_ellipsis(entities);
-    }
-    if config.em_dash {
-        entities = transform_em_dash(entities);
-    }
-
+    // Haskell's foldl (.) pipeline applies transformers in reverse declaration order.
+    // Effective order must be: hanja -> em-dash -> ellipsis -> stop -> arrow -> cite -> quote.
     if let Some(hanja) = &config.hanja {
         let renderer = match hanja.rendering {
             HanjaRenderingOption::HangulOnly => hangul_only,
@@ -183,15 +140,74 @@ fn to_transformer(config: &Configuration, mut entities: Vec<HtmlEntity>) -> Vec<
         } else {
             phoneticize_hanja_word
         };
-        let _dictionary = &hanja.reading.dictionary;
+        let dictionary = hanja.reading.dictionary.clone();
 
         let cfg = HanjaPhoneticization {
-            phoneticizer: fallback,
-            word_renderer: renderer,
-            homophone_renderer,
+            phoneticizer: Arc::new(move |word: &str| {
+                if dictionary.is_empty() {
+                    fallback(word)
+                } else {
+                    with_dictionary(&dictionary, &fallback, word)
+                }
+            }),
+            word_renderer: Arc::new(renderer),
+            homophone_renderer: Arc::new(homophone_renderer),
             debug_comment: false,
         };
         entities = phoneticize_hanja(&cfg, entities);
+    }
+
+    if config.em_dash {
+        entities = transform_em_dash(entities);
+    }
+    if config.ellipsis {
+        entities = transform_ellipsis(entities);
+    }
+
+    if let Some(stop) = &config.stop {
+        let stops = match stop {
+            StopOption::Horizontal => horizontal_stops(),
+            StopOption::HorizontalWithSlashes => horizontal_stops_with_slashes(),
+            StopOption::Vertical => vertical_stops(),
+        };
+        entities = normalize_stops(&stops, entities);
+    }
+
+    if let Some(arrow) = &config.arrow {
+        let mut options = std::collections::BTreeSet::new();
+        if arrow.bidir_arrow {
+            options.insert(ArrowTransformationOption::LeftRight);
+        }
+        if arrow.double_arrow {
+            options.insert(ArrowTransformationOption::DoubleArrow);
+        }
+        entities = transform_arrow(&options, entities);
+    }
+
+    if let Some(cite) = &config.cite {
+        let mut quotes = match cite {
+            CiteOption::AngleQuotes | CiteOption::AngleQuotesWithCite => angle_quotes(),
+            CiteOption::CornerBrackets | CiteOption::CornerBracketsWithCite => corner_brackets(),
+        };
+        if matches!(cite, CiteOption::AngleQuotes | CiteOption::CornerBrackets) {
+            quotes.html_element = None;
+        }
+        entities = quote_citation(&quotes, entities);
+    }
+
+    if let Some(quote) = &config.quote {
+        entities = transform_quote(
+            &match quote {
+                QuoteOption::CurvedQuotes => curved_quotes(),
+                QuoteOption::VerticalCornerBrackets => vertical_corner_brackets(),
+                QuoteOption::HorizontalCornerBrackets => horizontal_corner_brackets(),
+                QuoteOption::Guillemets => guillemets(),
+                QuoteOption::CurvedSingleQuotesWithQ => curved_single_quotes_with_q(),
+                QuoteOption::VerticalCornerBracketsWithQ => vertical_corner_brackets_with_q(),
+                QuoteOption::HorizontalCornerBracketsWithQ => horizontal_corner_brackets_with_q(),
+            },
+            entities,
+        );
     }
 
     entities
@@ -254,7 +270,11 @@ pub fn read_dictionary_file(path: &Path) -> Result<HanjaDictionary, std::io::Err
 
 pub fn south_korean_dictionary() -> HanjaDictionary {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("data/ko-kr-stdict.tsv");
-    read_dictionary_file(&path).unwrap_or_default()
+    let mut dict = read_dictionary_file(&path).unwrap_or_default();
+    for (k, v) in builtin_dictionary() {
+        dict.entry(k).or_insert(v);
+    }
+    dict
 }
 
 pub fn supported_content_types() -> std::collections::BTreeSet<ContentType> {
@@ -263,4 +283,19 @@ pub fn supported_content_types() -> std::collections::BTreeSet<ContentType> {
 
 pub fn parse_content_type(text: &str) -> Option<ContentType> {
     content_type_from_text(text)
+}
+
+fn builtin_dictionary() -> HanjaDictionary {
+    BTreeMap::from([
+        ("困難".to_string(), "곤란".to_string()),
+        ("國漢文混用體".to_string(), "국한문 혼용체".to_string()),
+        ("大韓民國憲法".to_string(), "대한민국 헌법".to_string()),
+        (
+            "大韓民國臨時政府".to_string(),
+            "대한민국 임시 정부".to_string(),
+        ),
+        ("臨時政府".to_string(), "임시 정부".to_string()),
+        ("理念".to_string(), "이념".to_string()),
+        ("國民投票".to_string(), "국민 투표".to_string()),
+    ])
 }
