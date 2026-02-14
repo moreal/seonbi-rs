@@ -1,3 +1,9 @@
 /target
 .tools/
 **/.DS_Store
+crates/seonbi-node/node_modules/
+crates/seonbi-node/*.node
+crates/seonbi-node/index.d.ts
+crates/seonbi-wasm/pkg/
+crates/seonbi-python/.venv/
+crates/seonbi-python/dist/
