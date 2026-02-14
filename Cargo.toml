@@ -37,3 +37,10 @@ serde-wasm-bindgen = "0.6"
 tsify = { version = "0.5", features = ["js"] }
 js-sys = "0.3"
 pyo3 = { version = "0.28", features = ["abi3-py314"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
