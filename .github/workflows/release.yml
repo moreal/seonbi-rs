@@ -1,0 +1,70 @@
+name: Release Bindings
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  publish-node:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        working-directory: crates/seonbi-node
+        run: npm install
+      - name: Build Node artifact
+        working-directory: crates/seonbi-node
+        run: npx napi build --release --platform
+      - name: Prepare npm packages
+        working-directory: crates/seonbi-node
+        run: npx napi prepublish -t npm
+      - name: Publish npm package
+        working-directory: crates/seonbi-node
+        run: npm publish --access public
+
+  publish-wasm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+      - name: Build wasm package
+        run: wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi
+      - name: Publish wasm package
+        run: wasm-pack publish crates/seonbi-wasm --access public
+
+  publish-python:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: publish
+          args: --release --manifest-path crates/seonbi-python/Cargo.toml
