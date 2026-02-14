@@ -147,7 +147,10 @@ struct Args {
     #[arg(long = "no-ellipsis", short = 'E')]
     no_ellipsis: bool,
 
-    #[arg(long = "no-em-dash", short = 'D')]
+    // Original seonbi 0.5.0 uses `-D` for both `--no-em-dash` and `--dict`.
+    // In clap this is ambiguous, so we keep `-D` for `--dict` and use `-M`
+    // for `--no-em-dash`.
+    #[arg(long = "no-em-dash", short = 'M')]
     no_em_dash: bool,
 
     #[arg(long = "stop", short = 's', value_enum)]
@@ -165,7 +168,7 @@ struct Args {
     #[arg(long = "read-hanja", short = 'R', value_parser = parse_hanja_reading_arg)]
     read_hanja: Vec<HanjaReadingArg>,
 
-    #[arg(long = "dict")]
+    #[arg(long = "dict", short = 'D')]
     dict: Vec<String>,
 
     #[arg(long = "no-kr-stdict", short = 'S')]
