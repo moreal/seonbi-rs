@@ -151,6 +151,114 @@ fn original_api_endpoint() -> Option<(String, u16)> {
     Some((host.to_string(), port))
 }
 
+#[derive(Debug, Clone, Copy)]
+enum BodyComparison {
+    ExactJson,
+    ErrorShape,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ApiCompareCase {
+    name: &'static str,
+    method: &'static str,
+    target: &'static str,
+    body: Option<&'static str>,
+    comparison: BodyComparison,
+}
+
+fn assert_equivalent_headers(case_name: &str, original: &HttpResponse, current: &HttpResponse) {
+    for key in [
+        "content-type",
+        "access-control-allow-headers",
+        "vary",
+        "access-control-allow-origin",
+    ] {
+        assert_eq!(
+            original.headers.get(key),
+            current.headers.get(key),
+            "header mismatch for {case_name}: {key}"
+        );
+    }
+
+    let original_server = original
+        .headers
+        .get("server")
+        .unwrap_or_else(|| panic!("missing server header in original for {case_name}"));
+    let current_server = current
+        .headers
+        .get("server")
+        .unwrap_or_else(|| panic!("missing server header in ported for {case_name}"));
+    assert!(
+        original_server.starts_with("Seonbi/"),
+        "unexpected original server header for {case_name}: {original_server}"
+    );
+    assert!(
+        current_server.starts_with("Seonbi/"),
+        "unexpected ported server header for {case_name}: {current_server}"
+    );
+}
+
+fn assert_equivalent_case(
+    original_host: &str,
+    original_port: u16,
+    current_port: u16,
+    case: ApiCompareCase,
+) {
+    let original =
+        send_http_to(original_host, original_port, case.method, case.target, case.body, &[])
+            .unwrap_or_else(|e| panic!("original request failed for {}: {e}", case.name));
+    let current = send_http(current_port, case.method, case.target, case.body, &[])
+        .unwrap_or_else(|e| panic!("ported request failed for {}: {e}", case.name));
+
+    assert_eq!(
+        original.status, current.status,
+        "status mismatch for {}",
+        case.name
+    );
+    assert_equivalent_headers(case.name, &original, &current);
+
+    match case.comparison {
+        BodyComparison::ExactJson => {
+            let original_json = parse_json_body(&original.body);
+            let current_json = parse_json_body(&current.body);
+            assert_eq!(
+                original_json, current_json,
+                "json body mismatch for {}",
+                case.name
+            );
+        }
+        BodyComparison::ErrorShape => {
+            let original_json = parse_json_body(&original.body);
+            let current_json = parse_json_body(&current.body);
+            assert_eq!(
+                original_json["success"], current_json["success"],
+                "success mismatch for {}",
+                case.name
+            );
+            assert_eq!(
+                original_json["success"],
+                false,
+                "expected error response for {}",
+                case.name
+            );
+            assert!(
+                original_json["message"]
+                    .as_str()
+                    .is_some_and(|m| !m.trim().is_empty()),
+                "original message is empty for {}",
+                case.name
+            );
+            assert!(
+                current_json["message"]
+                    .as_str()
+                    .is_some_and(|m| !m.trim().is_empty()),
+                "ported message is empty for {}",
+                case.name
+            );
+        }
+    }
+}
+
 #[test]
 fn post_with_preset_returns_transformed_content() {
     let server = RunningServer::spawn(&[]);
@@ -273,16 +381,77 @@ fn compares_with_original_when_configured() {
     };
 
     let server = RunningServer::spawn(&[]);
-    let body = r#"{"content":"<p>漢字</p>","preset":"ko-kr"}"#;
+    let cases = [
+        ApiCompareCase {
+            name: "post preset ko-kr",
+            method: "POST",
+            target: "/",
+            body: Some(r#"{"content":"<p>漢字</p>","preset":"ko-kr"}"#),
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "post with individual options",
+            method: "POST",
+            target: "/",
+            body: Some(
+                r#"{"content":"<p>'A' &lt;&lt;無情&gt;&gt; ... -- <-></p>","contentType":"text/html","quote":"guillemets","cite":"angle-quotes-with-cite","arrow":{"bidir":true,"double":true},"ellipsis":true,"emDash":true,"stop":"horizontal"}"#,
+            ),
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "post deprecated sourceHtml",
+            method: "POST",
+            target: "/",
+            body: Some(r#"{"sourceHtml":"<p>漢字</p>","preset":"ko-kr"}"#),
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "post deprecated xhtml",
+            method: "POST",
+            target: "/",
+            body: Some(r#"{"content":"<p>漢字</p>","xhtml":true,"preset":"ko-kr"}"#),
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "post invalid preset",
+            method: "POST",
+            target: "/",
+            body: Some(r#"{"content":"x","preset":"invalid"}"#),
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "post malformed json",
+            method: "POST",
+            target: "/",
+            body: Some("{not-json}"),
+            comparison: BodyComparison::ErrorShape,
+        },
+        ApiCompareCase {
+            name: "post hanja dictionary + useDictionaries",
+            method: "POST",
+            target: "/",
+            body: Some(
+                r#"{"content":"<p>困難 孫文</p>","contentType":"text/html","hanja":{"rendering":"hangul-only","reading":{"initialSoundLaw":true,"dictionary":{"孫文":"쑨원"},"useDictionaries":["kr-stdict"]}}}"#,
+            ),
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "options wildcard",
+            method: "OPTIONS",
+            target: "*",
+            body: None,
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "unsupported method put",
+            method: "PUT",
+            target: "/",
+            body: None,
+            comparison: BodyComparison::ExactJson,
+        },
+    ];
 
-    let original =
-        send_http_to(&host, port, "POST", "/", Some(body), &[]).expect("original request");
-    let current = send_http(server.port, "POST", "/", Some(body), &[]).expect("current request");
-
-    assert_eq!(original.status, current.status);
-    assert_eq!(original.headers.get("content-type"), current.headers.get("content-type"));
-
-    let original_json = parse_json_body(&original.body);
-    let current_json = parse_json_body(&current.body);
-    assert_eq!(original_json, current_json);
+    for case in cases {
+        assert_equivalent_case(&host, port, server.port, case);
+    }
 }
