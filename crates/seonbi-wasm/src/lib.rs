@@ -12,6 +12,27 @@ use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct BindingError(String);
+
+impl BindingError {
+    fn new(message: impl Into<String>) -> Self {
+        Self(message.into())
+    }
+
+    fn into_js_error(self) -> JsError {
+        JsError::new(&self.0)
+    }
+}
+
+impl std::fmt::Display for BindingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for BindingError {}
+
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum QuoteOption {
@@ -91,7 +112,7 @@ pub struct Configuration {
 
 #[wasm_bindgen]
 pub fn transform(config: Configuration, input: &str) -> Result<String, JsError> {
-    let internal_config = to_internal_config(config)?;
+    let internal_config = to_internal_config(config).map_err(BindingError::into_js_error)?;
     transform_html_text(&internal_config, input).map_err(|e| JsError::new(&e.to_string()))
 }
 
@@ -105,7 +126,7 @@ pub fn ko_kp() -> Configuration {
     from_internal_config(seonbi::ko_kp(), Some("ko-kp"))
 }
 
-fn to_internal_config(config: Configuration) -> Result<InternalConfiguration, JsError> {
+fn to_internal_config(config: Configuration) -> Result<InternalConfiguration, BindingError> {
     let mut internal = if let Some(preset_name) = config.preset.as_ref() {
         preset_by_name(preset_name)?
     } else {
@@ -154,7 +175,7 @@ fn to_internal_config(config: Configuration) -> Result<InternalConfiguration, Js
     Ok(internal)
 }
 
-fn to_internal_hanja_option(option: HanjaOption) -> Result<InternalHanjaOption, JsError> {
+fn to_internal_hanja_option(option: HanjaOption) -> Result<InternalHanjaOption, BindingError> {
     let mut dictionary = BTreeMap::new();
     for dict_id in option.reading.use_dictionaries {
         match dict_id.as_str() {
@@ -163,7 +184,7 @@ fn to_internal_hanja_option(option: HanjaOption) -> Result<InternalHanjaOption, 
                     dictionary.entry(k).or_insert(v);
                 }
             }
-            _ => return Err(JsError::new(&format!("No such dictionary ID: {dict_id}"))),
+            _ => return Err(BindingError::new(format!("No such dictionary ID: {dict_id}"))),
         }
     }
 
@@ -176,24 +197,26 @@ fn to_internal_hanja_option(option: HanjaOption) -> Result<InternalHanjaOption, 
     })
 }
 
-fn preset_by_name(name: &str) -> Result<InternalConfiguration, JsError> {
+fn preset_by_name(name: &str) -> Result<InternalConfiguration, BindingError> {
     let preset_key = name.to_ascii_lowercase().replace('_', "-");
     let preset_map = presets();
     preset_map.get(&preset_key).cloned().ok_or_else(|| {
-        JsError::new(&format!(
+        BindingError::new(format!(
             "No such preset: {name}; available presets: {}",
             preset_map.keys().cloned().collect::<Vec<_>>().join(", ")
         ))
     })
 }
 
-fn invalid_content_type_error(value: &str) -> JsError {
+fn invalid_content_type_error(value: &str) -> BindingError {
     let available = supported_content_types()
         .into_iter()
         .map(|v| v.as_str().to_string())
         .collect::<Vec<_>>()
         .join(", ");
-    JsError::new(&format!("Invalid content type: {value}; available content types: {available}"))
+    BindingError::new(format!(
+        "Invalid content type: {value}; available content types: {available}"
+    ))
 }
 
 fn from_internal_config(config: InternalConfiguration, preset: Option<&str>) -> Configuration {
