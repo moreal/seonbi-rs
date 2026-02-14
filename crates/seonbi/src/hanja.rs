@@ -36,17 +36,11 @@ pub fn def() -> HanjaPhoneticization {
 }
 
 pub fn hangul_only(stack: &HtmlTagStack, _hanja: &str, hangul: &str) -> Vec<HtmlEntity> {
-    vec![HtmlEntity::Cdata {
-        tag_stack: stack.clone(),
-        text: hangul.to_string(),
-    }]
+    vec![HtmlEntity::Cdata { tag_stack: stack.clone(), text: hangul.to_string() }]
 }
 
 pub fn hanja_in_parentheses(stack: &HtmlTagStack, hanja: &str, hangul: &str) -> Vec<HtmlEntity> {
-    vec![HtmlEntity::Cdata {
-        tag_stack: stack.clone(),
-        text: format!("{hangul}({hanja})"),
-    }]
+    vec![HtmlEntity::Cdata { tag_stack: stack.clone(), text: format!("{hangul}({hanja})") }]
 }
 
 pub fn hanja_in_ruby(stack: &HtmlTagStack, hanja: &str, hangul: &str) -> Vec<HtmlEntity> {
@@ -57,53 +51,29 @@ pub fn hanja_in_ruby(stack: &HtmlTagStack, hanja: &str, hangul: &str) -> Vec<Htm
             tag: HtmlTag::Ruby,
             raw_attributes: String::new(),
         },
-        HtmlEntity::Cdata {
-            tag_stack: ruby_stack.clone(),
-            text: hanja.to_string(),
-        },
+        HtmlEntity::Cdata { tag_stack: ruby_stack.clone(), text: hanja.to_string() },
         HtmlEntity::StartTag {
             tag_stack: ruby_stack.clone(),
             tag: HtmlTag::RP,
             raw_attributes: String::new(),
         },
-        HtmlEntity::Text {
-            tag_stack: ruby_stack.push(HtmlTag::RP),
-            raw_text: "(".to_string(),
-        },
-        HtmlEntity::EndTag {
-            tag_stack: ruby_stack.clone(),
-            tag: HtmlTag::RP,
-        },
+        HtmlEntity::Text { tag_stack: ruby_stack.push(HtmlTag::RP), raw_text: "(".to_string() },
+        HtmlEntity::EndTag { tag_stack: ruby_stack.clone(), tag: HtmlTag::RP },
         HtmlEntity::StartTag {
             tag_stack: ruby_stack.clone(),
             tag: HtmlTag::RT,
             raw_attributes: String::new(),
         },
-        HtmlEntity::Cdata {
-            tag_stack: ruby_stack.push(HtmlTag::RT),
-            text: hangul.to_string(),
-        },
-        HtmlEntity::EndTag {
-            tag_stack: ruby_stack.clone(),
-            tag: HtmlTag::RT,
-        },
+        HtmlEntity::Cdata { tag_stack: ruby_stack.push(HtmlTag::RT), text: hangul.to_string() },
+        HtmlEntity::EndTag { tag_stack: ruby_stack.clone(), tag: HtmlTag::RT },
         HtmlEntity::StartTag {
             tag_stack: ruby_stack.clone(),
             tag: HtmlTag::RP,
             raw_attributes: String::new(),
         },
-        HtmlEntity::Text {
-            tag_stack: ruby_stack.push(HtmlTag::RP),
-            raw_text: ")".to_string(),
-        },
-        HtmlEntity::EndTag {
-            tag_stack: ruby_stack.clone(),
-            tag: HtmlTag::RP,
-        },
-        HtmlEntity::EndTag {
-            tag_stack: stack.clone(),
-            tag: HtmlTag::Ruby,
-        },
+        HtmlEntity::Text { tag_stack: ruby_stack.push(HtmlTag::RP), raw_text: ")".to_string() },
+        HtmlEntity::EndTag { tag_stack: ruby_stack.clone(), tag: HtmlTag::RP },
+        HtmlEntity::EndTag { tag_stack: stack.clone(), tag: HtmlTag::Ruby },
     ]
 }
 
@@ -112,23 +82,15 @@ pub fn phoneticize_hanja(cfg: &HanjaPhoneticization, entities: Vec<HtmlEntity>) 
 
     for annotated in annotate_with_lang(entities) {
         match annotated.entity {
-            HtmlEntity::Text {
-                tag_stack,
-                raw_text,
-            } => {
+            HtmlEntity::Text { tag_stack, raw_text } => {
                 if is_preserved_tag_stack(&tag_stack) || is_never_korean(&annotated.lang) {
-                    normalized.push(EitherEntity::Left(HtmlEntity::Text {
-                        tag_stack,
-                        raw_text,
-                    }));
+                    normalized.push(EitherEntity::Left(HtmlEntity::Text { tag_stack, raw_text }));
                     continue;
                 }
 
                 match analyze_hanja_text(&raw_text) {
-                    None => normalized.push(EitherEntity::Left(HtmlEntity::Text {
-                        tag_stack,
-                        raw_text,
-                    })),
+                    None => normalized
+                        .push(EitherEntity::Left(HtmlEntity::Text { tag_stack, raw_text })),
                     Some(pairs) => {
                         for (is_hanja, text) in pairs {
                             if !is_hanja {
@@ -181,10 +143,7 @@ pub fn phoneticize_hanja(cfg: &HanjaPhoneticization, entities: Vec<HtmlEntity>) 
     let mut frequency: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for entry in &expanded {
         if let EitherEntity::Right((_, hanja, hangul)) = entry {
-            frequency
-                .entry(hangul.clone())
-                .or_default()
-                .insert(hanja.clone());
+            frequency.entry(hangul.clone()).or_default().insert(hanja.clone());
         }
     }
 
@@ -193,15 +152,8 @@ pub fn phoneticize_hanja(cfg: &HanjaPhoneticization, entities: Vec<HtmlEntity>) 
         match entry {
             EitherEntity::Left(entity) => out.push(entity),
             EitherEntity::Right((stack, hanja, hangul)) => {
-                let ambiguous = frequency
-                    .get(&hangul)
-                    .map(|set| set.len() > 1)
-                    .unwrap_or(false);
-                let renderer = if ambiguous {
-                    &cfg.homophone_renderer
-                } else {
-                    &cfg.word_renderer
-                };
+                let ambiguous = frequency.get(&hangul).map(|set| set.len() > 1).unwrap_or(false);
+                let renderer = if ambiguous { &cfg.homophone_renderer } else { &cfg.word_renderer };
 
                 if cfg.debug_comment {
                     out.push(HtmlEntity::Comment {
@@ -311,10 +263,7 @@ fn parse_yeol_yul(chars: &[char], i: usize) -> Option<(String, usize)> {
         return None;
     }
 
-    Some((
-        format!("{}{}", former_phone, convert_initial_sound_law(later)),
-        2,
-    ))
+    Some((format!("{}{}", former_phone, convert_initial_sound_law(later)), 2))
 }
 
 fn parse_prefixed_number(chars: &[char], i: usize) -> Option<(String, usize)> {
@@ -349,10 +298,8 @@ fn parse_han_number(chars: &[char], i: usize) -> Option<(String, usize)> {
         j += 1;
     }
 
-    let out: String = chars[i..j]
-        .iter()
-        .map(|c| convert_initial_sound_law(phoneticize_digit(*c)))
-        .collect();
+    let out: String =
+        chars[i..j].iter().map(|c| convert_initial_sound_law(phoneticize_digit(*c))).collect();
     Some((out, j - i))
 }
 
@@ -386,10 +333,7 @@ where
         while !pattern.is_empty() {
             if let Some(matched) = dictionary.get(&pattern) {
                 let rest = &wd[pattern.len()..];
-                matches.push((
-                    format!("{}{}", fallback(unmatched), matched),
-                    rest.to_string(),
-                ));
+                matches.push((format!("{}{}", fallback(unmatched), matched), rest.to_string()));
                 break;
             }
             pattern.pop();
@@ -464,10 +408,7 @@ pub fn convert_initial_sound_law(sound: char) -> char {
     let Some((pattern, final_jamo)) = without_batchim(sound) else {
         return sound;
     };
-    let converted = initial_sound_law_table()
-        .get(&pattern)
-        .copied()
-        .unwrap_or(pattern);
+    let converted = initial_sound_law_table().get(&pattern).copied().unwrap_or(pattern);
     with_batchim(converted, final_jamo).unwrap_or(sound)
 }
 
@@ -568,11 +509,7 @@ fn parse_numeric_char_ref(input: &str) -> Option<(char, usize)> {
         if ch == ';' {
             break;
         }
-        let valid = if hex {
-            ch.is_ascii_hexdigit()
-        } else {
-            ch.is_ascii_digit()
-        };
+        let valid = if hex { ch.is_ascii_hexdigit() } else { ch.is_ascii_digit() };
         if !valid {
             return None;
         }
@@ -584,11 +521,8 @@ fn parse_numeric_char_ref(input: &str) -> Option<(char, usize)> {
     }
 
     let num_str = &rest[digits_start..idx];
-    let codepoint = if hex {
-        u32::from_str_radix(num_str, 16).ok()?
-    } else {
-        num_str.parse::<u32>().ok()?
-    };
+    let codepoint =
+        if hex { u32::from_str_radix(num_str, 16).ok()? } else { num_str.parse::<u32>().ok()? };
     let ch = char::from_u32(codepoint)?;
 
     Some((ch, 2 + idx + 1))

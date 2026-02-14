@@ -28,26 +28,11 @@ fn phoneticize_hanja_word_works() {
 
 #[test]
 fn phoneticize_hanja_word_with_initial_sound_law_works() {
-    assert_eq!(
-        phoneticize_hanja_word_with_initial_sound_law("漢字"),
-        "한자"
-    );
-    assert_eq!(
-        phoneticize_hanja_word_with_initial_sound_law("來日"),
-        "내일"
-    );
-    assert_eq!(
-        phoneticize_hanja_word_with_initial_sound_law("良質"),
-        "양질"
-    );
-    assert_eq!(
-        phoneticize_hanja_word_with_initial_sound_law("法律"),
-        "법률"
-    );
-    assert_eq!(
-        phoneticize_hanja_word_with_initial_sound_law("第六共和國"),
-        "제육공화국"
-    );
+    assert_eq!(phoneticize_hanja_word_with_initial_sound_law("漢字"), "한자");
+    assert_eq!(phoneticize_hanja_word_with_initial_sound_law("來日"), "내일");
+    assert_eq!(phoneticize_hanja_word_with_initial_sound_law("良質"), "양질");
+    assert_eq!(phoneticize_hanja_word_with_initial_sound_law("法律"), "법률");
+    assert_eq!(phoneticize_hanja_word_with_initial_sound_law("第六共和國"), "제육공화국");
 }
 
 #[test]
@@ -91,27 +76,15 @@ fn hanja_renderers_work() {
     let stack = [].into();
     assert_eq!(
         hangul_only(&stack, "地球", "지구"),
-        vec![HtmlEntity::Cdata {
-            tag_stack: [].into(),
-            text: "지구".to_string(),
-        }]
+        vec![HtmlEntity::Cdata { tag_stack: [].into(), text: "지구".to_string() }]
     );
     assert_eq!(
         hanja_in_parentheses(&stack, "地球", "지구"),
-        vec![HtmlEntity::Cdata {
-            tag_stack: [].into(),
-            text: "지구(地球)".to_string(),
-        }]
+        vec![HtmlEntity::Cdata { tag_stack: [].into(), text: "지구(地球)".to_string() }]
     );
 
     let ruby = seonbi::normalize_text(hanja_in_ruby(&stack, "地球", "지구"));
-    assert!(matches!(
-        ruby.first(),
-        Some(HtmlEntity::StartTag {
-            tag: HtmlTag::Ruby,
-            ..
-        })
-    ));
+    assert!(matches!(ruby.first(), Some(HtmlEntity::StartTag { tag: HtmlTag::Ruby, .. })));
 }
 
 #[test]
@@ -119,8 +92,7 @@ fn skips_preserved_and_non_korean() {
     let cfg = def();
     let input = vec![
         HtmlEntity::Text {
-            tag_stack: [HtmlTag::Pre].into(),
-            raw_text: "1996年 地球".to_string(),
+            tag_stack: [HtmlTag::Pre].into(), raw_text: "1996年 地球".to_string()
         },
         HtmlEntity::StartTag {
             tag_stack: [].into(),
@@ -131,10 +103,7 @@ fn skips_preserved_and_non_korean() {
             tag_stack: [HtmlTag::Span].into(),
             raw_text: "誰も知らない".to_string(),
         },
-        HtmlEntity::EndTag {
-            tag_stack: [].into(),
-            tag: HtmlTag::Span,
-        },
+        HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::Span },
     ];
 
     assert_eq!(phoneticize_hanja(&cfg, input.clone()), input);

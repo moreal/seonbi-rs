@@ -9,10 +9,7 @@ fn text_reverser(entities: Vec<HtmlEntity>) -> Vec<HtmlEntity> {
 
 fn reverse_text(entity: HtmlEntity) -> HtmlEntity {
     match entity {
-        HtmlEntity::Text {
-            tag_stack,
-            raw_text,
-        } => {
+        HtmlEntity::Text { tag_stack, raw_text } => {
             let decoded = html_escape::decode_html_entities(&raw_text).to_string();
             let reversed: String = decoded.chars().rev().collect();
             HtmlEntity::Text {
@@ -20,10 +17,9 @@ fn reverse_text(entity: HtmlEntity) -> HtmlEntity {
                 raw_text: html_escape::encode_text(&reversed).to_string(),
             }
         }
-        HtmlEntity::Cdata { tag_stack, text } => HtmlEntity::Cdata {
-            tag_stack,
-            text: text.chars().rev().collect(),
-        },
+        HtmlEntity::Cdata { tag_stack, text } => {
+            HtmlEntity::Cdata { tag_stack, text: text.chars().rev().collect() }
+        }
         other => other,
     }
 }

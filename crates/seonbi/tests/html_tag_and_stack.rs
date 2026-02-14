@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use seonbi::{
-    heading_level, heading_tag, html_tag_kind, html_tag_name, HtmlTag, HtmlTagKind, HtmlTagStack,
+    HtmlTag, HtmlTagKind, HtmlTagStack, heading_level, heading_tag, html_tag_kind, html_tag_name,
 };
 
 #[test]
@@ -26,7 +26,8 @@ fn tag_stack_works() {
     let popped = stack.pop(HtmlTag::P);
     assert_eq!(popped.to_list(), vec![HtmlTag::Div, HtmlTag::Article, HtmlTag::Em]);
 
-    let target = HtmlTagStack::from([HtmlTag::Article, HtmlTag::BlockQuote, HtmlTag::P, HtmlTag::Em]);
+    let target =
+        HtmlTagStack::from([HtmlTag::Article, HtmlTag::BlockQuote, HtmlTag::P, HtmlTag::Em]);
     let rebased = target.rebase(
         &HtmlTagStack::from([HtmlTag::Article, HtmlTag::BlockQuote]),
         &HtmlTagStack::from([HtmlTag::Div]),

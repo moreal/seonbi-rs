@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use super::{
     entity::HtmlEntity,
-    tag::{html_tag_kind, HtmlTag, HtmlTagKind},
+    tag::{HtmlTag, HtmlTagKind, html_tag_kind},
     tag_stack::HtmlTagStack,
 };
 
@@ -22,10 +22,7 @@ pub fn scan_html(input: &str) -> Result<Vec<HtmlEntity>, ScanError> {
     while pos < input.len() {
         let (text, next_pos) = scan_text(input, pos, &tag_stack);
         if !text.is_empty() {
-            entities.push(HtmlEntity::Text {
-                tag_stack: tag_stack.clone(),
-                raw_text: text,
-            });
+            entities.push(HtmlEntity::Text { tag_stack: tag_stack.clone(), raw_text: text });
         }
         pos = next_pos;
         if pos >= input.len() {
@@ -41,10 +38,7 @@ pub fn scan_html(input: &str) -> Result<Vec<HtmlEntity>, ScanError> {
         }
 
         let c = segment.chars().next().ok_or(ScanError::InvalidHtml)?;
-        entities.push(HtmlEntity::Text {
-            tag_stack: tag_stack.clone(),
-            raw_text: c.to_string(),
-        });
+        entities.push(HtmlEntity::Text { tag_stack: tag_stack.clone(), raw_text: c.to_string() });
         pos += c.len_utf8();
     }
 
@@ -74,10 +68,7 @@ fn scan_text(input: &str, start: usize, stack: &HtmlTagStack) -> (String, usize)
 
         match second {
             Some(c)
-                if c != '!'
-                    && c != '/'
-                    && !c.is_ascii_uppercase()
-                    && !c.is_ascii_lowercase() =>
+                if c != '!' && c != '/' && !c.is_ascii_uppercase() && !c.is_ascii_lowercase() =>
             {
                 out.push('<');
                 out.push(c);
@@ -112,10 +103,7 @@ fn parse_comment(
     let comment = rest[..end].to_string();
     let consumed = 4 + end + 3;
     Some((
-        vec![HtmlEntity::Comment {
-            tag_stack: tag_stack.clone(),
-            comment,
-        }],
+        vec![HtmlEntity::Comment { tag_stack: tag_stack.clone(), comment }],
         tag_stack.clone(),
         consumed,
     ))
@@ -130,10 +118,7 @@ fn parse_cdata(
     let text = rest[..end].to_string();
     let consumed = 9 + end + 3;
     Some((
-        vec![HtmlEntity::Cdata {
-            tag_stack: tag_stack.clone(),
-            text,
-        }],
+        vec![HtmlEntity::Cdata { tag_stack: tag_stack.clone(), text }],
         tag_stack.clone(),
         consumed,
     ))
@@ -218,17 +203,11 @@ fn parse_start_tag(
     }
     i += 1;
 
-    let mut entities = vec![HtmlEntity::StartTag {
-        tag_stack: tag_stack.clone(),
-        tag,
-        raw_attributes: attrs,
-    }];
+    let mut entities =
+        vec![HtmlEntity::StartTag { tag_stack: tag_stack.clone(), tag, raw_attributes: attrs }];
 
     let next_stack = if self_closing || html_tag_kind(tag) == HtmlTagKind::Void {
-        entities.push(HtmlEntity::EndTag {
-            tag_stack: tag_stack.clone(),
-            tag,
-        });
+        entities.push(HtmlEntity::EndTag { tag_stack: tag_stack.clone(), tag });
         tag_stack.clone()
     } else {
         tag_stack.push(tag)
@@ -263,12 +242,5 @@ fn parse_end_tag(
     }
 
     let next_stack = tag_stack.pop(tag);
-    Some((
-        vec![HtmlEntity::EndTag {
-            tag_stack: next_stack.clone(),
-            tag,
-        }],
-        next_stack,
-        i + 2,
-    ))
+    Some((vec![HtmlEntity::EndTag { tag_stack: next_stack.clone(), tag }], next_stack, i + 2))
 }

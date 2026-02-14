@@ -7,10 +7,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 fn run_binary<S: AsRef<OsStr>>(bin_path: &Path, args: &[S], stdin_input: &str) -> Output {
     let mut cmd = Command::new(bin_path);
-    cmd.args(args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+    cmd.args(args).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
     let mut child = cmd.spawn().expect("spawn binary");
     {
         let stdin = child.stdin.as_mut().expect("stdin");
@@ -27,18 +24,11 @@ fn current_bin_path() -> PathBuf {
 fn original_bin_path() -> Option<PathBuf> {
     let path = env::var("SEONBI_ORIGINAL_BIN").ok()?;
     let path = PathBuf::from(path);
-    if path.exists() {
-        Some(path)
-    } else {
-        None
-    }
+    if path.exists() { Some(path) } else { None }
 }
 
 fn temp_path(name: &str) -> std::path::PathBuf {
-    let ts = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("clock")
-        .as_nanos();
+    let ts = SystemTime::now().duration_since(UNIX_EPOCH).expect("clock").as_nanos();
     std::env::temp_dir().join(format!("seonbi_cli_compare_{name}_{ts}.html"))
 }
 
@@ -69,7 +59,8 @@ fn assert_equivalent(original_bin: &Path, args: &[&str], stdin_input: &str) {
         String::from_utf8_lossy(&ported.stderr),
     );
     assert_eq!(
-        original.stdout, ported.stdout,
+        original.stdout,
+        ported.stdout,
         "stdout differs\nargs: {:?}\nstdin: {:?}\noriginal stderr:\n{}\nported stderr:\n{}",
         args,
         stdin_input,
@@ -85,11 +76,7 @@ fn compare_stdin_stdout_matrix() {
             ("preset ko-kr", &["-p", "ko-kr"], "<p>漢字</p>"),
             ("preset ko-kp", &["-p", "ko-kp"], "<p>平壤 冷麵</p>"),
             ("quote", &["-q", "guillemets"], "'a' \"b\" c"),
-            (
-                "cite",
-                &["-c", "angle-quotes-with-cite"],
-                "<p>&lt;&lt;無情&gt;&gt;</p>",
-            ),
+            ("cite", &["-c", "angle-quotes-with-cite"], "<p>&lt;&lt;無情&gt;&gt;</p>"),
             ("arrow bidir+double", &["-b", "-d"], "<p>A <-> B => C</p>"),
             ("stop horizontal", &["-s", "horizontal"], "봄。 여름"),
             ("no quote", &["--no-quote"], "\"A\""),
@@ -97,16 +84,8 @@ fn compare_stdin_stdout_matrix() {
             ("no ellipsis", &["--no-ellipsis"], "..."),
             ("no em-dash", &["--no-em-dash"], "a -- b"),
             ("maintain hanja", &["--maintain-hanja"], "<p>漢字</p>"),
-            (
-                "render hanja",
-                &["--render-hanja", "hanja-in-parentheses"],
-                "<p>漢字</p>",
-            ),
-            (
-                "no initial sound law",
-                &["--no-initial-sound-law"],
-                "<p>六</p>",
-            ),
+            ("render hanja", &["--render-hanja", "hanja-in-parentheses"], "<p>漢字</p>"),
+            ("no initial sound law", &["--no-initial-sound-law"], "<p>六</p>"),
             ("custom reading", &["-R", "孫文:쑨원"], "<p>孫文</p>"),
             ("no kr stdict", &["-S"], "<p>困難</p>"),
             ("plain text", &["-t", "text/plain"], "漢字"),
@@ -199,7 +178,8 @@ fn compare_dict_short_option() {
             String::from_utf8_lossy(&ported.stderr),
         );
         assert_eq!(
-            original.stdout, ported.stdout,
+            original.stdout,
+            ported.stdout,
             "stdout differs\noriginal stderr:\n{}\nported stderr:\n{}",
             String::from_utf8_lossy(&original.stderr),
             String::from_utf8_lossy(&ported.stderr),

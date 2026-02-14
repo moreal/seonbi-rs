@@ -1,6 +1,6 @@
 use html_escape::decode_html_entities;
 
-use super::{entity::HtmlEntity, tag::html_tag_kind, tag::HtmlTagKind};
+use super::{entity::HtmlEntity, tag::HtmlTagKind, tag::html_tag_kind};
 
 pub fn print_html(entities: &[HtmlEntity]) -> String {
     print_html_like(false, entities)
@@ -16,12 +16,7 @@ fn print_html_like(xhtml: bool, entities: &[HtmlEntity]) -> String {
 
     while i < entities.len() {
         if i + 1 < entities.len() && is_void_pair(&entities[i], &entities[i + 1]) {
-            if let HtmlEntity::StartTag {
-                tag,
-                raw_attributes,
-                ..
-            } = &entities[i]
-            {
+            if let HtmlEntity::StartTag { tag, raw_attributes, .. } = &entities[i] {
                 out.push('<');
                 out.push_str(tag.name());
                 push_attrs(&mut out, raw_attributes);
@@ -45,15 +40,8 @@ fn print_html_like(xhtml: bool, entities: &[HtmlEntity]) -> String {
 fn is_void_pair(a: &HtmlEntity, b: &HtmlEntity) -> bool {
     match (a, b) {
         (
-            HtmlEntity::StartTag {
-                tag_stack: sa,
-                tag: ta,
-                ..
-            },
-            HtmlEntity::EndTag {
-                tag_stack: sb,
-                tag: tb,
-            },
+            HtmlEntity::StartTag { tag_stack: sa, tag: ta, .. },
+            HtmlEntity::EndTag { tag_stack: sb, tag: tb },
         ) => html_tag_kind(*ta) == HtmlTagKind::Void && sa == sb && ta == tb,
         _ => false,
     }
@@ -61,11 +49,7 @@ fn is_void_pair(a: &HtmlEntity, b: &HtmlEntity) -> bool {
 
 fn render_entity(out: &mut String, entity: &HtmlEntity) {
     match entity {
-        HtmlEntity::StartTag {
-            tag,
-            raw_attributes,
-            ..
-        } => {
+        HtmlEntity::StartTag { tag, raw_attributes, .. } => {
             out.push('<');
             out.push_str(tag.name());
             push_attrs(out, raw_attributes);

@@ -29,9 +29,7 @@ pub fn to_jamo_triple(c: char) -> Option<JamoTriple> {
 pub fn from_jamo_triple((initial, vowel, final_jamo): JamoTriple) -> Option<char> {
     let initial_index = initial as i32 - INITIAL_BASE as i32;
     let vowel_index = vowel as i32 - VOWEL_BASE as i32;
-    let final_index = final_jamo
-        .map(|f| f as i32 - FINAL_BASE as i32)
-        .unwrap_or(0);
+    let final_index = final_jamo.map(|f| f as i32 - FINAL_BASE as i32).unwrap_or(0);
 
     if !(0..=18).contains(&initial_index)
         || !(0..=20).contains(&vowel_index)

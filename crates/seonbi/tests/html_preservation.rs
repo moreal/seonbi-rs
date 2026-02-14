@@ -1,6 +1,4 @@
-use seonbi::{
-    is_preserved_entity, is_preserved_tag, is_preserved_tag_stack, HtmlEntity, HtmlTag,
-};
+use seonbi::{HtmlEntity, HtmlTag, is_preserved_entity, is_preserved_tag, is_preserved_tag_stack};
 
 #[test]
 fn preserved_tag_and_stack() {

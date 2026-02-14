@@ -7,11 +7,7 @@ pub fn clip_text(prefix: &str, suffix: &str, entities: &[HtmlEntity]) -> Option<
 
 pub fn clip_prefix_text(prefix: &str, entities: &[HtmlEntity]) -> Option<Vec<HtmlEntity>> {
     if entities.is_empty() {
-        return if prefix.is_empty() {
-            Some(Vec::new())
-        } else {
-            None
-        };
+        return if prefix.is_empty() { Some(Vec::new()) } else { None };
     }
 
     let mut out = Vec::new();
@@ -47,11 +43,7 @@ pub fn clip_prefix_text(prefix: &str, entities: &[HtmlEntity]) -> Option<Vec<Htm
 
 pub fn clip_suffix_text(suffix: &str, entities: &[HtmlEntity]) -> Option<Vec<HtmlEntity>> {
     if entities.is_empty() {
-        return if suffix.is_empty() {
-            Some(Vec::new())
-        } else {
-            None
-        };
+        return if suffix.is_empty() { Some(Vec::new()) } else { None };
     }
 
     let mut last_non_comment = None;

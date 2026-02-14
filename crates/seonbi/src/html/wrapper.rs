@@ -15,16 +15,11 @@ pub fn wrap(
 
     let new_base = base_stack.push(tag);
     for entity in entities {
-        let rebased = entity
-            .tag_stack()
-            .rebase(base_stack, &new_base);
+        let rebased = entity.tag_stack().rebase(base_stack, &new_base);
         out.push(entity.with_tag_stack(rebased));
     }
 
-    out.push(HtmlEntity::EndTag {
-        tag_stack: base_stack.clone(),
-        tag,
-    });
+    out.push(HtmlEntity::EndTag { tag_stack: base_stack.clone(), tag });
     out
 }
 
@@ -39,15 +34,8 @@ pub fn is_wrapped_by_exact(entities: &[HtmlEntity], tag: HtmlTag, attrs: Option<
 
     match (&entities[0], &entities[entities.len() - 1]) {
         (
-            HtmlEntity::StartTag {
-                tag_stack: start_stack,
-                tag: start_tag,
-                raw_attributes,
-            },
-            HtmlEntity::EndTag {
-                tag_stack: end_stack,
-                tag: end_tag,
-            },
+            HtmlEntity::StartTag { tag_stack: start_stack, tag: start_tag, raw_attributes },
+            HtmlEntity::EndTag { tag_stack: end_stack, tag: end_tag },
         ) => {
             *start_tag == tag
                 && *end_tag == tag

@@ -112,9 +112,7 @@ pub static K_HANGUL_DATA_RESULT: Lazy<Result<KHangulData, String>> = Lazy::new(|
         let mut converted = BTreeMap::new();
         for (reading_key, citation) in readings {
             let mut chars = reading_key.chars();
-            let reading = chars
-                .next()
-                .ok_or_else(|| "empty reading key".to_string())?;
+            let reading = chars.next().ok_or_else(|| "empty reading key".to_string())?;
             if chars.next().is_some() {
                 return Err(format!("invalid reading key: {reading_key}"));
             }

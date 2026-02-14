@@ -9,11 +9,7 @@ use seonbi::{
 
 fn arrow_sample(tag: HtmlTag) -> Vec<HtmlEntity> {
     vec![
-        HtmlEntity::StartTag {
-            tag_stack: [].into(),
-            tag,
-            raw_attributes: String::new(),
-        },
+        HtmlEntity::StartTag { tag_stack: [].into(), tag, raw_attributes: String::new() },
         HtmlEntity::Text {
             tag_stack: [tag].into(),
             raw_text: "A -&gt; B, B &lt;- A, C &lt;-&gt; D".to_string(),
@@ -23,18 +19,12 @@ fn arrow_sample(tag: HtmlTag) -> Vec<HtmlEntity> {
             tag: HtmlTag::BR,
             raw_attributes: String::new(),
         },
-        HtmlEntity::EndTag {
-            tag_stack: [tag].into(),
-            tag: HtmlTag::BR,
-        },
+        HtmlEntity::EndTag { tag_stack: [tag].into(), tag: HtmlTag::BR },
         HtmlEntity::Text {
             tag_stack: [tag].into(),
             raw_text: "a =&#62; b, b &#60;= a, c &#X3C;=&#x3e; d".to_string(),
         },
-        HtmlEntity::EndTag {
-            tag_stack: [].into(),
-            tag,
-        },
+        HtmlEntity::EndTag { tag_stack: [].into(), tag },
     ]
 }
 
@@ -50,10 +40,7 @@ fn quote_citation_works() {
             tag_stack: [HtmlTag::P].into(),
             raw_text: "&lt;&lt;無情&gt;&gt;".to_string(),
         },
-        HtmlEntity::EndTag {
-            tag_stack: [].into(),
-            tag: HtmlTag::P,
-        },
+        HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::P },
     ];
 
     assert_eq!(
@@ -64,10 +51,7 @@ fn quote_citation_works() {
                 tag: HtmlTag::P,
                 raw_attributes: String::new(),
             },
-            HtmlEntity::Text {
-                tag_stack: [HtmlTag::P].into(),
-                raw_text: "&#12298;".to_string(),
-            },
+            HtmlEntity::Text { tag_stack: [HtmlTag::P].into(), raw_text: "&#12298;".to_string() },
             HtmlEntity::StartTag {
                 tag_stack: [HtmlTag::P].into(),
                 tag: HtmlTag::Cite,
@@ -77,31 +61,16 @@ fn quote_citation_works() {
                 tag_stack: [HtmlTag::P, HtmlTag::Cite].into(),
                 raw_text: "無情".to_string(),
             },
-            HtmlEntity::EndTag {
-                tag_stack: [HtmlTag::P].into(),
-                tag: HtmlTag::Cite,
-            },
-            HtmlEntity::Text {
-                tag_stack: [HtmlTag::P].into(),
-                raw_text: "&#12299;".to_string(),
-            },
-            HtmlEntity::EndTag {
-                tag_stack: [].into(),
-                tag: HtmlTag::P,
-            },
+            HtmlEntity::EndTag { tag_stack: [HtmlTag::P].into(), tag: HtmlTag::Cite },
+            HtmlEntity::Text { tag_stack: [HtmlTag::P].into(), raw_text: "&#12299;".to_string() },
+            HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::P },
         ]
     );
 
     let mut without_cite: CitationQuotes = corner_brackets();
     without_cite.html_element = None;
     let out = quote_citation(&without_cite, title_input);
-    assert!(!out.iter().any(|e| matches!(
-        e,
-        HtmlEntity::StartTag {
-            tag: HtmlTag::Cite,
-            ..
-        }
-    )));
+    assert!(!out.iter().any(|e| matches!(e, HtmlEntity::StartTag { tag: HtmlTag::Cite, .. })));
 }
 
 #[test]
@@ -124,18 +93,12 @@ fn transform_arrow_works() {
                 tag: HtmlTag::BR,
                 raw_attributes: String::new(),
             },
-            HtmlEntity::EndTag {
-                tag_stack: [HtmlTag::P].into(),
-                tag: HtmlTag::BR,
-            },
+            HtmlEntity::EndTag { tag_stack: [HtmlTag::P].into(), tag: HtmlTag::BR },
             HtmlEntity::Text {
                 tag_stack: [HtmlTag::P].into(),
                 raw_text: "a =&#62; b, b &#60;= a, c &#X3C;=&#x3e; d".to_string(),
             },
-            HtmlEntity::EndTag {
-                tag_stack: [].into(),
-                tag: HtmlTag::P,
-            },
+            HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::P },
         ]
     );
 
@@ -165,27 +128,15 @@ fn transform_ellipsis_works() {
             tag: HtmlTag::P,
             raw_attributes: String::new(),
         },
-        HtmlEntity::Text {
-            tag_stack: [HtmlTag::P].into(),
-            raw_text: "abc...def".to_string(),
-        },
-        HtmlEntity::EndTag {
-            tag_stack: [].into(),
-            tag: HtmlTag::P,
-        },
+        HtmlEntity::Text { tag_stack: [HtmlTag::P].into(), raw_text: "abc...def".to_string() },
+        HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::P },
         HtmlEntity::StartTag {
             tag_stack: [].into(),
             tag: HtmlTag::Pre,
             raw_attributes: String::new(),
         },
-        HtmlEntity::Text {
-            tag_stack: [HtmlTag::Pre].into(),
-            raw_text: "ignore...".to_string(),
-        },
-        HtmlEntity::EndTag {
-            tag_stack: [].into(),
-            tag: HtmlTag::Pre,
-        },
+        HtmlEntity::Text { tag_stack: [HtmlTag::Pre].into(), raw_text: "ignore...".to_string() },
+        HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::Pre },
     ];
     let out = transform_ellipsis(sample);
     assert!(matches!(
@@ -200,10 +151,8 @@ fn transform_ellipsis_works() {
 
 #[test]
 fn transform_quote_works() {
-    let input = vec![HtmlEntity::Text {
-        tag_stack: [].into(),
-        raw_text: "'a' \"b\" c".to_string(),
-    }];
+    let input =
+        vec![HtmlEntity::Text { tag_stack: [].into(), raw_text: "'a' \"b\" c".to_string() }];
 
     let out = normalize_text(transform_quote(&curved_quotes(), input.clone()));
     assert_eq!(
@@ -227,27 +176,15 @@ fn transform_quote_works() {
     assert_eq!(
         out,
         vec![
-            HtmlEntity::Text {
-                tag_stack: [].into(),
-                raw_text: "&lsquo;a&rsquo; ".to_string(),
-            },
+            HtmlEntity::Text { tag_stack: [].into(), raw_text: "&lsquo;a&rsquo; ".to_string() },
             HtmlEntity::StartTag {
                 tag_stack: [].into(),
                 tag: HtmlTag::Q,
                 raw_attributes: String::new(),
             },
-            HtmlEntity::Text {
-                tag_stack: [HtmlTag::Q].into(),
-                raw_text: "b".to_string(),
-            },
-            HtmlEntity::EndTag {
-                tag_stack: [].into(),
-                tag: HtmlTag::Q,
-            },
-            HtmlEntity::Text {
-                tag_stack: [].into(),
-                raw_text: " c".to_string(),
-            },
+            HtmlEntity::Text { tag_stack: [HtmlTag::Q].into(), raw_text: "b".to_string() },
+            HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::Q },
+            HtmlEntity::Text { tag_stack: [].into(), raw_text: " c".to_string() },
         ]
     );
 }
@@ -279,10 +216,7 @@ fn normalize_stops_works() {
             tag_stack: [HtmlTag::P].into(),
             raw_text: "봄·여름。어제, 오늘? 아침!".to_string(),
         },
-        HtmlEntity::EndTag {
-            tag_stack: [].into(),
-            tag: HtmlTag::P,
-        },
+        HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::P },
     ];
 
     let horizontal = normalize_stops(&horizontal_stops(), input.clone());

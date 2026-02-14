@@ -167,12 +167,9 @@ struct ApiCompareCase {
 }
 
 fn assert_equivalent_headers(case_name: &str, original: &HttpResponse, current: &HttpResponse) {
-    for key in [
-        "content-type",
-        "access-control-allow-headers",
-        "vary",
-        "access-control-allow-origin",
-    ] {
+    for key in
+        ["content-type", "access-control-allow-headers", "vary", "access-control-allow-origin"]
+    {
         assert_eq!(
             original.headers.get(key),
             current.headers.get(key),
@@ -210,22 +207,14 @@ fn assert_equivalent_case(
     let current = send_http(current_port, case.method, case.target, case.body, &[])
         .unwrap_or_else(|e| panic!("ported request failed for {}: {e}", case.name));
 
-    assert_eq!(
-        original.status, current.status,
-        "status mismatch for {}",
-        case.name
-    );
+    assert_eq!(original.status, current.status, "status mismatch for {}", case.name);
     assert_equivalent_headers(case.name, &original, &current);
 
     match case.comparison {
         BodyComparison::ExactJson => {
             let original_json = parse_json_body(&original.body);
             let current_json = parse_json_body(&current.body);
-            assert_eq!(
-                original_json, current_json,
-                "json body mismatch for {}",
-                case.name
-            );
+            assert_eq!(original_json, current_json, "json body mismatch for {}", case.name);
         }
         BodyComparison::ErrorShape => {
             let original_json = parse_json_body(&original.body);
@@ -236,22 +225,17 @@ fn assert_equivalent_case(
                 case.name
             );
             assert_eq!(
-                original_json["success"],
-                false,
+                original_json["success"], false,
                 "expected error response for {}",
                 case.name
             );
             assert!(
-                original_json["message"]
-                    .as_str()
-                    .is_some_and(|m| !m.trim().is_empty()),
+                original_json["message"].as_str().is_some_and(|m| !m.trim().is_empty()),
                 "original message is empty for {}",
                 case.name
             );
             assert!(
-                current_json["message"]
-                    .as_str()
-                    .is_some_and(|m| !m.trim().is_empty()),
+                current_json["message"].as_str().is_some_and(|m| !m.trim().is_empty()),
                 "ported message is empty for {}",
                 case.name
             );

@@ -32,10 +32,7 @@ pub enum ContentTypeError {
 
 pub fn content_type_from_text(text: &str) -> Option<ContentType> {
     let lowered = text.trim().to_ascii_lowercase();
-    if content_types()
-        .iter()
-        .any(|ct| ct.as_str().eq_ignore_ascii_case(&lowered))
-    {
+    if content_types().iter().any(|ct| ct.as_str().eq_ignore_ascii_case(&lowered)) {
         Some(ContentType(lowered))
     } else {
         None
@@ -76,10 +73,8 @@ where
     F: Fn(Vec<HtmlEntity>) -> Vec<HtmlEntity>,
 {
     let escaped = html_escape::encode_text(text).to_string();
-    let entities = vec![HtmlEntity::Text {
-        tag_stack: crate::html::HtmlTagStack::empty(),
-        raw_text: escaped,
-    }];
+    let entities =
+        vec![HtmlEntity::Text { tag_stack: crate::html::HtmlTagStack::empty(), raw_text: escaped }];
     Ok(print_text(&transformer(entities)))
 }
 
@@ -141,17 +136,13 @@ fn markdown_to_entities(input: &str) -> Result<Vec<HtmlEntity>, ContentTypeError
                     push_end_tag(&mut entities, &mut stack, html_tag);
                 }
             }
-            Event::Text(text) => entities.push(HtmlEntity::Cdata {
-                tag_stack: stack.clone(),
-                text: text.to_string(),
-            }),
+            Event::Text(text) => entities
+                .push(HtmlEntity::Cdata { tag_stack: stack.clone(), text: text.to_string() }),
             Event::Code(code) => {
                 let attrs = md_attrs("code-span");
                 push_start_tag(&mut entities, &mut stack, HtmlTag::Code, attrs);
-                entities.push(HtmlEntity::Cdata {
-                    tag_stack: stack.clone(),
-                    text: code.to_string(),
-                });
+                entities
+                    .push(HtmlEntity::Cdata { tag_stack: stack.clone(), text: code.to_string() });
                 push_end_tag(&mut entities, &mut stack, HtmlTag::Code);
             }
             Event::Html(html) | Event::InlineHtml(html) => {
@@ -174,22 +165,14 @@ fn markdown_to_entities(input: &str) -> Result<Vec<HtmlEntity>, ContentTypeError
             }
             Event::Rule => push_void_tag(&mut entities, &stack, HtmlTag::HR, md_attrs("rule")),
             Event::InlineMath(text) | Event::DisplayMath(text) => {
-                entities.push(HtmlEntity::Cdata {
-                    tag_stack: stack.clone(),
-                    text: text.to_string(),
-                });
+                entities
+                    .push(HtmlEntity::Cdata { tag_stack: stack.clone(), text: text.to_string() });
             }
-            Event::FootnoteReference(label) => entities.push(HtmlEntity::Cdata {
-                tag_stack: stack.clone(),
-                text: format!("[^{label}]"),
-            }),
+            Event::FootnoteReference(label) => entities
+                .push(HtmlEntity::Cdata { tag_stack: stack.clone(), text: format!("[^{label}]") }),
             Event::TaskListMarker(checked) => entities.push(HtmlEntity::Cdata {
                 tag_stack: stack.clone(),
-                text: if checked {
-                    "[x] ".to_string()
-                } else {
-                    "[ ] ".to_string()
-                },
+                text: if checked { "[x] ".to_string() } else { "[ ] ".to_string() },
             }),
         }
     }
@@ -211,11 +194,7 @@ fn entities_to_markdown(entities: &[HtmlEntity]) -> Result<String, ContentTypeEr
             HtmlEntity::Comment { comment, .. } => {
                 events.push(Event::Html(CowStr::from(format!("<!--{comment}-->"))));
             }
-            HtmlEntity::StartTag {
-                tag,
-                raw_attributes,
-                ..
-            } => {
+            HtmlEntity::StartTag { tag, raw_attributes, .. } => {
                 if let Some(kind) = get_attr(raw_attributes, MD_KIND_ATTR) {
                     match kind.as_str() {
                         "softbreak" => {
@@ -317,17 +296,13 @@ fn markdown_start_tag_to_html(tag: Tag<'_>) -> Option<(HtmlTag, String)> {
         Tag::Item => Some((HtmlTag::LI, md_attrs("item"))),
         Tag::Emphasis => Some((HtmlTag::Em, md_attrs("emphasis"))),
         Tag::Strong => Some((HtmlTag::Strong, md_attrs("strong"))),
-        Tag::Link {
-            dest_url, title, ..
-        } => {
+        Tag::Link { dest_url, title, .. } => {
             let mut attrs = md_attrs("link");
             push_attr(&mut attrs, "href", &dest_url);
             push_attr(&mut attrs, "title", &title);
             Some((HtmlTag::A, attrs))
         }
-        Tag::Image {
-            dest_url, title, ..
-        } => {
+        Tag::Image { dest_url, title, .. } => {
             let mut attrs = md_attrs("image");
             push_attr(&mut attrs, "src", &dest_url);
             push_attr(&mut attrs, "title", &title);
@@ -364,22 +339,14 @@ fn html_to_markdown_start_tag(
             let level = heading_level(tag)?;
             let level = heading_level_to_markdown(level)?;
             Some((
-                Tag::Heading {
-                    level,
-                    id: None,
-                    classes: Vec::new(),
-                    attrs: Vec::new(),
-                },
+                Tag::Heading { level, id: None, classes: Vec::new(), attrs: Vec::new() },
                 TagEnd::Heading(level),
             ))
         }
         "blockquote" => Some((Tag::BlockQuote(None), TagEnd::BlockQuote(None))),
         "code-block" => {
             let info = get_attr(raw_attributes, MD_INFO_ATTR).unwrap_or_default();
-            Some((
-                Tag::CodeBlock(CodeBlockKind::Fenced(CowStr::from(info))),
-                TagEnd::CodeBlock,
-            ))
+            Some((Tag::CodeBlock(CodeBlockKind::Fenced(CowStr::from(info))), TagEnd::CodeBlock))
         }
         "list-unordered" => Some((Tag::List(None), TagEnd::List(false))),
         "list-ordered" => {
@@ -465,16 +432,9 @@ fn push_start_tag(
     raw_attributes: String,
 ) {
     let current = stack.clone();
-    out.push(HtmlEntity::StartTag {
-        tag_stack: current.clone(),
-        tag,
-        raw_attributes,
-    });
+    out.push(HtmlEntity::StartTag { tag_stack: current.clone(), tag, raw_attributes });
     if html_tag_kind(tag) == HtmlTagKind::Void {
-        out.push(HtmlEntity::EndTag {
-            tag_stack: current,
-            tag,
-        });
+        out.push(HtmlEntity::EndTag { tag_stack: current, tag });
     } else {
         *stack = stack.push(tag);
     }
@@ -482,10 +442,7 @@ fn push_start_tag(
 
 fn push_end_tag(out: &mut Vec<HtmlEntity>, stack: &mut HtmlTagStack, tag: HtmlTag) {
     *stack = stack.pop(tag);
-    out.push(HtmlEntity::EndTag {
-        tag_stack: stack.clone(),
-        tag,
-    });
+    out.push(HtmlEntity::EndTag { tag_stack: stack.clone(), tag });
 }
 
 fn push_void_tag(
@@ -494,15 +451,8 @@ fn push_void_tag(
     tag: HtmlTag,
     raw_attributes: String,
 ) {
-    out.push(HtmlEntity::StartTag {
-        tag_stack: stack.clone(),
-        tag,
-        raw_attributes,
-    });
-    out.push(HtmlEntity::EndTag {
-        tag_stack: stack.clone(),
-        tag,
-    });
+    out.push(HtmlEntity::StartTag { tag_stack: stack.clone(), tag, raw_attributes });
+    out.push(HtmlEntity::EndTag { tag_stack: stack.clone(), tag });
 }
 
 fn rebase_entities(base: &HtmlTagStack, parsed: &[HtmlEntity]) -> Vec<HtmlEntity> {

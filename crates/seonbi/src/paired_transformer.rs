@@ -27,26 +27,17 @@ fn iter<M: Clone>(
     entities: Vec<HtmlEntity>,
 ) -> Vec<HtmlEntity> {
     if entities.is_empty() {
-        return if stack.is_empty() {
-            Vec::new()
-        } else {
-            unstack(stack)
-        };
+        return if stack.is_empty() { Vec::new() } else { unstack(stack) };
     }
 
     let mut rest = entities;
     let first = rest.remove(0);
 
     match first {
-        HtmlEntity::Text {
-            tag_stack,
-            raw_text,
-        } => {
+        HtmlEntity::Text { tag_stack, raw_text } => {
             let prev_matches: Vec<M> = stack.iter().map(|u| u.m.clone()).collect();
-            let start_match = (t.match_start)(
-                &prev_matches.into_iter().rev().collect::<Vec<_>>(),
-                &raw_text,
-            );
+            let start_match =
+                (t.match_start)(&prev_matches.into_iter().rev().collect::<Vec<_>>(), &raw_text);
             let end_match = (t.match_end)(&raw_text);
 
             match (start_match, end_match) {
@@ -70,22 +61,13 @@ fn iter<M: Clone>(
                 }
                 (None, _) => {
                     if stack.is_empty() {
-                        let mut out = vec![HtmlEntity::Text {
-                            tag_stack,
-                            raw_text,
-                        }];
+                        let mut out = vec![HtmlEntity::Text { tag_stack, raw_text }];
                         out.extend(iter(t, stack, rest));
                         out
                     } else {
                         let mut stack2 = stack;
                         if let Some(top) = stack2.first_mut() {
-                            top.buffer.insert(
-                                0,
-                                HtmlEntity::Text {
-                                    tag_stack,
-                                    raw_text,
-                                },
-                            );
+                            top.buffer.insert(0, HtmlEntity::Text { tag_stack, raw_text });
                         }
                         iter(t, stack2, rest)
                     }
@@ -122,10 +104,7 @@ fn roll<M: Clone>(
     if stack.is_empty() {
         let unclosed = Unclosed {
             m: start_match,
-            buffer: vec![HtmlEntity::Text {
-                tag_stack: tag_stack.clone(),
-                raw_text: token,
-            }],
+            buffer: vec![HtmlEntity::Text { tag_stack: tag_stack.clone(), raw_text: token }],
         };
         let mut out = prepend_text(&tag_stack, &pre, Vec::new());
         out.extend(iter(t, vec![unclosed], next_entities));
@@ -133,10 +112,7 @@ fn roll<M: Clone>(
     } else {
         let unclosed = Unclosed {
             m: start_match,
-            buffer: vec![HtmlEntity::Text {
-                tag_stack: tag_stack.clone(),
-                raw_text: token,
-            }],
+            buffer: vec![HtmlEntity::Text { tag_stack: tag_stack.clone(), raw_text: token }],
         };
         if let Some(top) = stack.first_mut() {
             let mut new_buf = prepend_text(&tag_stack, &pre, Vec::new());
@@ -240,12 +216,7 @@ fn prepend_text(
     if text.is_empty() {
         return entities;
     }
-    entities.insert(
-        0,
-        HtmlEntity::Text {
-            tag_stack: tag_stack.clone(),
-            raw_text: text.to_string(),
-        },
-    );
+    entities
+        .insert(0, HtmlEntity::Text { tag_stack: tag_stack.clone(), raw_text: text.to_string() });
     entities
 }

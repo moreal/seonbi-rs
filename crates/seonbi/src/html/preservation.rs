@@ -1,4 +1,6 @@
-use super::{entity::HtmlEntity, tag::html_tag_kind, tag::HtmlTag, tag::HtmlTagKind, tag_stack::HtmlTagStack};
+use super::{
+    entity::HtmlEntity, tag::HtmlTag, tag::HtmlTagKind, tag::html_tag_kind, tag_stack::HtmlTagStack,
+};
 
 pub fn is_preserved_tag(tag: HtmlTag) -> bool {
     match tag {

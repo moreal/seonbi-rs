@@ -1,10 +1,7 @@
-use seonbi::{normalize_text, scan_html, HtmlEntity, HtmlTag};
+use seonbi::{HtmlEntity, HtmlTag, normalize_text, scan_html};
 
 fn text(stack: &[HtmlTag], raw: &str) -> HtmlEntity {
-    HtmlEntity::Text {
-        tag_stack: stack.to_vec().into(),
-        raw_text: raw.to_string(),
-    }
+    HtmlEntity::Text { tag_stack: stack.to_vec().into(), raw_text: raw.to_string() }
 }
 
 fn start(stack: &[HtmlTag], tag: HtmlTag, attrs: &str) -> HtmlEntity {
@@ -16,10 +13,7 @@ fn start(stack: &[HtmlTag], tag: HtmlTag, attrs: &str) -> HtmlEntity {
 }
 
 fn end(stack: &[HtmlTag], tag: HtmlTag) -> HtmlEntity {
-    HtmlEntity::EndTag {
-        tag_stack: stack.to_vec().into(),
-        tag,
-    }
+    HtmlEntity::EndTag { tag_stack: stack.to_vec().into(), tag }
 }
 
 #[test]
@@ -30,18 +24,12 @@ fn scanner_basics() {
 
     assert_eq!(
         scan_html("<!-- foo -->").unwrap(),
-        vec![HtmlEntity::Comment {
-            tag_stack: [].into(),
-            comment: " foo ".to_string(),
-        }]
+        vec![HtmlEntity::Comment { tag_stack: [].into(), comment: " foo ".to_string() }]
     );
 
     assert_eq!(
         scan_html("<![CDATA[foo]]>").unwrap(),
-        vec![HtmlEntity::Cdata {
-            tag_stack: [].into(),
-            text: "foo".to_string(),
-        }]
+        vec![HtmlEntity::Cdata { tag_stack: [].into(), text: "foo".to_string() }]
     );
 }
 
@@ -51,14 +39,8 @@ fn scanner_comment_and_cdata_mixed() {
         scan_html("a<!-- x --><![CDATA[y]]>b").unwrap(),
         vec![
             text(&[], "a"),
-            HtmlEntity::Comment {
-                tag_stack: [].into(),
-                comment: " x ".to_string(),
-            },
-            HtmlEntity::Cdata {
-                tag_stack: [].into(),
-                text: "y".to_string(),
-            },
+            HtmlEntity::Comment { tag_stack: [].into(), comment: " x ".to_string() },
+            HtmlEntity::Cdata { tag_stack: [].into(), text: "y".to_string() },
             text(&[], "b"),
         ]
     );
@@ -69,11 +51,7 @@ fn scanner_preserves_raw_attributes() {
     assert_eq!(
         scan_html("<p class=\"x\" data-y='z' disabled foo=bar title=\"a&amp;b\">ok</p>").unwrap(),
         vec![
-            start(
-                &[],
-                HtmlTag::P,
-                " class=\"x\" data-y='z' disabled foo=bar title=\"a&amp;b\"",
-            ),
+            start(&[], HtmlTag::P, " class=\"x\" data-y='z' disabled foo=bar title=\"a&amp;b\"",),
             text(&[HtmlTag::P], "ok"),
             end(&[], HtmlTag::P),
         ]
@@ -156,32 +134,21 @@ fn assert_malformed_as_text(input: &str) {
     let result = scan_html(input).unwrap();
     assert_eq!(
         normalize_text(result),
-        vec![HtmlEntity::Text {
-            tag_stack: [].into(),
-            raw_text: input.to_string(),
-        }]
+        vec![HtmlEntity::Text { tag_stack: [].into(), raw_text: input.to_string() }]
     );
 }
 
 #[test]
 fn malformed_treated_as_text() {
-    for malformed in [
-        "<![CDATA[foo",
-        "<!-- foo",
-        "<invalid>",
-        "<p class=\"unterminated>ok",
-        "</unknown>",
-    ] {
+    for malformed in
+        ["<![CDATA[foo", "<!-- foo", "<invalid>", "<p class=\"unterminated>ok", "</unknown>"]
+    {
         assert_malformed_as_text(malformed);
     }
 
     let result = scan_html("<p><invalid></p>").unwrap();
     assert_eq!(
         normalize_text(result),
-        vec![
-            start(&[], HtmlTag::P, ""),
-            text(&[HtmlTag::P], "<invalid>"),
-            end(&[], HtmlTag::P),
-        ]
+        vec![start(&[], HtmlTag::P, ""), text(&[HtmlTag::P], "<invalid>"), end(&[], HtmlTag::P),]
     );
 }

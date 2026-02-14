@@ -22,10 +22,7 @@ pub fn extract_lang(raw_attrs: &str) -> Option<LanguageTag> {
         }
 
         let name_start = i;
-        while i < bytes.len()
-            && !(bytes[i] as char).is_whitespace()
-            && bytes[i] as char != '='
-        {
+        while i < bytes.len() && !(bytes[i] as char).is_whitespace() && bytes[i] as char != '=' {
             i += 1;
         }
         let name = &raw_attrs[name_start..i];
@@ -90,17 +87,10 @@ pub fn annotate_with_lang(entities: Vec<HtmlEntity>) -> Vec<LangHtmlEntity> {
     for entity in entities {
         let entity_probe = entity.clone();
         match entity_probe {
-            HtmlEntity::StartTag {
-                tag,
-                raw_attributes,
-                ..
-            } => {
+            HtmlEntity::StartTag { tag, raw_attributes, .. } => {
                 let parent_lang = stack.first().and_then(|(_, l)| l.clone());
                 let this_lang = extract_lang(&raw_attributes).or(parent_lang);
-                out.push(LangHtmlEntity {
-                    lang: this_lang.clone(),
-                    entity,
-                });
+                out.push(LangHtmlEntity { lang: this_lang.clone(), entity });
                 stack.insert(0, (tag, this_lang));
             }
             HtmlEntity::EndTag { tag, .. } => {
@@ -110,17 +100,11 @@ pub fn annotate_with_lang(entities: Vec<HtmlEntity>) -> Vec<LangHtmlEntity> {
                         stack.remove(0);
                     }
                 }
-                out.push(LangHtmlEntity {
-                    lang: this_lang,
-                    entity,
-                });
+                out.push(LangHtmlEntity { lang: this_lang, entity });
             }
             _ => {
                 let parent_lang = stack.first().and_then(|(_, l)| l.clone());
-                out.push(LangHtmlEntity {
-                    lang: parent_lang,
-                    entity,
-                });
+                out.push(LangHtmlEntity { lang: parent_lang, entity });
             }
         }
     }

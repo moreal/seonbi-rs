@@ -121,15 +121,9 @@ fn transform_title_pair(
     };
 
     let mut out = Vec::with_capacity(cited.len() + 2);
-    out.push(HtmlEntity::Text {
-        tag_stack: stack.clone(),
-        raw_text: open.clone(),
-    });
+    out.push(HtmlEntity::Text { tag_stack: stack.clone(), raw_text: open.clone() });
     out.extend(cited);
-    out.push(HtmlEntity::Text {
-        tag_stack: stack,
-        raw_text: close.clone(),
-    });
+    out.push(HtmlEntity::Text { tag_stack: stack, raw_text: close.clone() });
     out
 }
 
@@ -270,11 +264,7 @@ fn are_quote_pairs(start: QuotePunct, end: QuotePunct) -> bool {
 
 fn quote_punctuations() -> Vec<(QuotePunct, Vec<&'static str>, bool)> {
     vec![
-        (
-            QuotePunct::Apostrophe,
-            vec!["'", "&apos;", "&#39;", "&#x27;", "&#X27;"],
-            false,
-        ),
+        (QuotePunct::Apostrophe, vec!["'", "&apos;", "&#39;", "&#x27;", "&#X27;"], false),
         (
             QuotePunct::DoubleQuote,
             vec!["\"", "&quot;", "&QUOT;", "&#34;", "&#x22;", "&#X22;"],
@@ -282,14 +272,7 @@ fn quote_punctuations() -> Vec<(QuotePunct, Vec<&'static str>, bool)> {
         ),
         (
             QuotePunct::OpeningSingleQuote,
-            vec![
-                "\u{2018}",
-                "&lsquo;",
-                "&OpenCurlyQuote;",
-                "&#8216;",
-                "&#x2018;",
-                "&#X2018;",
-            ],
+            vec!["\u{2018}", "&lsquo;", "&OpenCurlyQuote;", "&#8216;", "&#x2018;", "&#X2018;"],
             false,
         ),
         (
@@ -421,15 +404,9 @@ fn transform_quote_pair(
     match pair {
         QuotePair::QuotePair(open, close) => {
             let mut out = Vec::with_capacity(middle.len() + 2);
-            out.push(HtmlEntity::Text {
-                tag_stack: stack.clone(),
-                raw_text: open.clone(),
-            });
+            out.push(HtmlEntity::Text { tag_stack: stack.clone(), raw_text: open.clone() });
             out.extend(middle);
-            out.push(HtmlEntity::Text {
-                tag_stack: stack,
-                raw_text: close.clone(),
-            });
+            out.push(HtmlEntity::Text { tag_stack: stack, raw_text: close.clone() });
             out
         }
         QuotePair::HtmlElement(tag, attrs) => wrap(&stack, *tag, attrs, middle),
@@ -457,10 +434,7 @@ pub fn vertical_stops() -> Stops {
 }
 
 pub fn horizontal_stops_with_slashes() -> Stops {
-    Stops {
-        interpunct: "/".to_string(),
-        ..horizontal_stops()
-    }
+    Stops { interpunct: "/".to_string(), ..horizontal_stops() }
 }
 
 pub fn normalize_stops(stops: &Stops, input: Vec<HtmlEntity>) -> Vec<HtmlEntity> {
@@ -468,20 +442,11 @@ pub fn normalize_stops(stops: &Stops, input: Vec<HtmlEntity>) -> Vec<HtmlEntity>
     annotated
         .into_iter()
         .map(|annot| match annot.entity {
-            HtmlEntity::Text {
-                tag_stack,
-                raw_text,
-            } => {
+            HtmlEntity::Text { tag_stack, raw_text } => {
                 if is_preserved_tag_stack(&tag_stack) || is_never_korean(&annot.lang) {
-                    HtmlEntity::Text {
-                        tag_stack,
-                        raw_text,
-                    }
+                    HtmlEntity::Text { tag_stack, raw_text }
                 } else {
-                    HtmlEntity::Text {
-                        tag_stack,
-                        raw_text: replace_stops(stops, &raw_text),
-                    }
+                    HtmlEntity::Text { tag_stack, raw_text: replace_stops(stops, &raw_text) }
                 }
             }
             other => other,
@@ -535,12 +500,7 @@ fn parse_stop(txt: &str, pos: usize, stops: &Stops) -> Option<(usize, Ending, St
 }
 
 fn parse_period(txt: &str, pos: usize) -> Option<(usize, Ending)> {
-    let boundary = [
-        (".", false),
-        ("&period;", false),
-        ("&#46;", false),
-        ("&#x2e;", true),
-    ];
+    let boundary = [(".", false), ("&period;", false), ("&#46;", false), ("&#x2e;", true)];
     let trailing = [("。", false), ("&#12290;", false), ("&#x3002;", true)];
 
     for (tok, ci) in boundary {
@@ -560,12 +520,7 @@ fn parse_period(txt: &str, pos: usize) -> Option<(usize, Ending)> {
 }
 
 fn parse_comma(txt: &str, pos: usize) -> Option<(usize, Ending)> {
-    let boundary = [
-        (",", false),
-        ("&comma;", false),
-        ("&#44;", false),
-        ("&#x2c;", true),
-    ];
+    let boundary = [(",", false), ("&comma;", false), ("&#44;", false), ("&#x2c;", true)];
     let trailing = [("、", false), ("&#12289;", false), ("&#x3001;", true)];
 
     for (tok, ci) in boundary {
@@ -602,12 +557,7 @@ fn parse_interpunct(txt: &str, pos: usize) -> Option<(usize, Ending)> {
 }
 
 fn parse_question_mark(txt: &str, pos: usize) -> Option<(usize, Ending)> {
-    let boundary = [
-        ("?", false),
-        ("&quest;", false),
-        ("&#63;", false),
-        ("&#x3f;", true),
-    ];
+    let boundary = [("?", false), ("&quest;", false), ("&#63;", false), ("&#x3f;", true)];
     let trailing = [("？", false), ("&#65311;", false), ("&#xff1f;", true)];
 
     for (tok, ci) in boundary {
@@ -627,12 +577,7 @@ fn parse_question_mark(txt: &str, pos: usize) -> Option<(usize, Ending)> {
 }
 
 fn parse_exclamation_mark(txt: &str, pos: usize) -> Option<(usize, Ending)> {
-    let boundary = [
-        ("!", false),
-        ("&excl;", false),
-        ("&#33;", false),
-        ("&#x21;", true),
-    ];
+    let boundary = [("!", false), ("&excl;", false), ("&#33;", false), ("&#x21;", true)];
     let trailing = [("！", false), ("&#65281;", false), ("&#xff01;", true)];
 
     for (tok, ci) in boundary {
@@ -738,11 +683,7 @@ fn parse_spaces(txt: &str, pos: usize) -> Option<(String, usize)> {
         }
         i += ch.len_utf8();
     }
-    if i == pos {
-        None
-    } else {
-        Some((txt[pos..i].to_string(), i - pos))
-    }
+    if i == pos { None } else { Some((txt[pos..i].to_string(), i - pos)) }
 }
 
 fn adjust_ending(ending: &Ending, text: &str) -> String {
@@ -780,20 +721,11 @@ pub fn transform_arrow(
     normalize_text(input)
         .into_iter()
         .map(|entity| match entity {
-            HtmlEntity::Text {
-                tag_stack,
-                raw_text,
-            } => {
+            HtmlEntity::Text { tag_stack, raw_text } => {
                 if is_preserved_tag_stack(&tag_stack) {
-                    HtmlEntity::Text {
-                        tag_stack,
-                        raw_text,
-                    }
+                    HtmlEntity::Text { tag_stack, raw_text }
                 } else {
-                    HtmlEntity::Text {
-                        tag_stack,
-                        raw_text: replace_arrows(options, &raw_text),
-                    }
+                    HtmlEntity::Text { tag_stack, raw_text: replace_arrows(options, &raw_text) }
                 }
             }
             other => other,
@@ -942,20 +874,11 @@ where
     entities
         .into_iter()
         .map(|entity| match entity {
-            HtmlEntity::Text {
-                tag_stack,
-                raw_text,
-            } => {
+            HtmlEntity::Text { tag_stack, raw_text } => {
                 if is_preserved_tag_stack(&tag_stack) {
-                    HtmlEntity::Text {
-                        tag_stack,
-                        raw_text,
-                    }
+                    HtmlEntity::Text { tag_stack, raw_text }
                 } else {
-                    HtmlEntity::Text {
-                        tag_stack,
-                        raw_text: replace(&raw_text),
-                    }
+                    HtmlEntity::Text { tag_stack, raw_text: replace(&raw_text) }
                 }
             }
             other => other,
@@ -964,42 +887,18 @@ where
 }
 
 fn parse_lt(input: &str, pos: usize) -> Option<usize> {
-    match_any_at(
-        input,
-        pos,
-        &[
-            ("<", false),
-            ("&lt;", false),
-            ("&#60;", false),
-            ("&#x3c;", true),
-        ],
-    )
+    match_any_at(input, pos, &[("<", false), ("&lt;", false), ("&#60;", false), ("&#x3c;", true)])
 }
 
 fn parse_gt(input: &str, pos: usize) -> Option<usize> {
-    match_any_at(
-        input,
-        pos,
-        &[
-            (">", false),
-            ("&gt;", false),
-            ("&#62;", false),
-            ("&#x3e;", true),
-        ],
-    )
+    match_any_at(input, pos, &[(">", false), ("&gt;", false), ("&#62;", false), ("&#x3e;", true)])
 }
 
 fn parse_hyphen(input: &str, pos: usize) -> Option<usize> {
     match_any_at(
         input,
         pos,
-        &[
-            ("-", false),
-            ("&hyphen;", false),
-            ("&dash;", false),
-            ("&#45;", false),
-            ("&#x2d;", true),
-        ],
+        &[("-", false), ("&hyphen;", false), ("&dash;", false), ("&#45;", false), ("&#x2d;", true)],
     )
 }
 
@@ -1007,12 +906,7 @@ fn parse_equals(input: &str, pos: usize) -> Option<usize> {
     match_any_at(
         input,
         pos,
-        &[
-            ("=", false),
-            ("&equals;", false),
-            ("&61;", false),
-            ("&#x3d;", true),
-        ],
+        &[("=", false), ("&equals;", false), ("&61;", false), ("&#x3d;", true)],
     )
 }
 
@@ -1020,29 +914,16 @@ fn parse_period_token(input: &str, pos: usize) -> Option<usize> {
     match_any_at(
         input,
         pos,
-        &[
-            (".", false),
-            ("&period;", false),
-            ("&#46;", false),
-            ("&#x2e;", true),
-        ],
+        &[(".", false), ("&period;", false), ("&#46;", false), ("&#x2e;", true)],
     )
 }
 
 fn parse_chinese_period_token(input: &str, pos: usize) -> Option<usize> {
-    match_any_at(
-        input,
-        pos,
-        &[("。", false), ("&#12290;", false), ("&#x3002;", true)],
-    )
+    match_any_at(input, pos, &[("。", false), ("&#12290;", false), ("&#x3002;", true)])
 }
 
 fn parse_eu(input: &str, pos: usize) -> Option<usize> {
-    match_any_at(
-        input,
-        pos,
-        &[("\u{3161}", false), ("&#12641;", false), ("&#x3161;", true)],
-    )
+    match_any_at(input, pos, &[("\u{3161}", false), ("&#12641;", false), ("&#x3161;", true)])
 }
 
 fn parse_lt_hyphen_gt(input: &str, pos: usize) -> Option<usize> {
@@ -1133,20 +1014,13 @@ fn find_first(text: &str, tokens: &[&str], ci_for_hex: bool) -> Option<(String, 
     }
 
     let (idx, len) = best?;
-    Some((
-        text[..idx].to_string(),
-        text[idx..idx + len].to_string(),
-        text[idx + len..].to_string(),
-    ))
+    Some((text[..idx].to_string(), text[idx..idx + len].to_string(), text[idx + len..].to_string()))
 }
 
 fn pick_earliest<T: Clone>(
     items: [Option<(T, String, String, String)>; 5],
 ) -> Option<(T, String, String, String)> {
-    items
-        .into_iter()
-        .flatten()
-        .min_by_key(|(_, pre, _, _)| pre.len())
+    items.into_iter().flatten().min_by_key(|(_, pre, _, _)| pre.len())
 }
 
 fn match_any_at(input: &str, pos: usize, tokens: &[(&str, bool)]) -> Option<usize> {
@@ -1169,11 +1043,7 @@ fn match_token_at(input: &str, pos: usize, token: &str, case_insensitive: bool) 
 
     let s = &input[pos..pos + len];
     if case_insensitive {
-        if eq_ascii_case_insensitive(s, token) {
-            Some(len)
-        } else {
-            None
-        }
+        if eq_ascii_case_insensitive(s, token) { Some(len) } else { None }
     } else if s == token {
         Some(len)
     } else {

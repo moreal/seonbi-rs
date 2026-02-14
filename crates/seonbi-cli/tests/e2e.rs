@@ -169,11 +169,7 @@ fn no_kr_stdict_works() {
 #[test]
 fn short_flags_for_dict_and_no_em_dash_work() {
     let no_em_dash = run_cli(&["-M"], "a -- b".as_bytes());
-    assert!(
-        no_em_dash.status.success(),
-        "stderr: {}",
-        String::from_utf8_lossy(&no_em_dash.stderr)
-    );
+    assert!(no_em_dash.status.success(), "stderr: {}", String::from_utf8_lossy(&no_em_dash.stderr));
     assert_eq!(String::from_utf8(no_em_dash.stdout).unwrap(), "a -- b");
 
     let dict_path = temp_path("dict_short", "tsv");

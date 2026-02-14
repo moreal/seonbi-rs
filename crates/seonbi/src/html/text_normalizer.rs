@@ -30,10 +30,7 @@ pub fn normalize_text(entities: Vec<HtmlEntity>) -> Vec<HtmlEntity> {
             }
         }
 
-        out.push(HtmlEntity::Text {
-            tag_stack: stack,
-            raw_text: merged,
-        });
+        out.push(HtmlEntity::Text { tag_stack: stack, raw_text: merged });
     }
 
     out
@@ -41,10 +38,9 @@ pub fn normalize_text(entities: Vec<HtmlEntity>) -> Vec<HtmlEntity> {
 
 pub fn normalize_cdata(entity: HtmlEntity) -> HtmlEntity {
     match entity {
-        HtmlEntity::Cdata { tag_stack, text } => HtmlEntity::Text {
-            tag_stack,
-            raw_text: escape_html_entities(&text),
-        },
+        HtmlEntity::Cdata { tag_stack, text } => {
+            HtmlEntity::Text { tag_stack, raw_text: escape_html_entities(&text) }
+        }
         _ => entity,
     }
 }

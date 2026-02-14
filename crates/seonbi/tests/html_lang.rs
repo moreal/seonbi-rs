@@ -1,6 +1,6 @@
 use seonbi::{
-    annotate_with_lang, extract_lang, is_korean, is_never_korean, HtmlEntity, HtmlTag,
-    LangHtmlEntity,
+    HtmlEntity, HtmlTag, LangHtmlEntity, annotate_with_lang, extract_lang, is_korean,
+    is_never_korean,
 };
 
 #[test]
@@ -8,10 +8,7 @@ fn extract_lang_works() {
     assert_eq!(extract_lang(""), None);
     assert_eq!(extract_lang("lang=en"), Some("en".to_string()));
     assert_eq!(extract_lang("lang='ko-KR'"), Some("ko-kr".to_string()));
-    assert_eq!(
-        extract_lang("id=\"foo\" lang=zh-CN class=bar"),
-        Some("zh-cn".to_string())
-    );
+    assert_eq!(extract_lang("id=\"foo\" lang=zh-CN class=bar"), Some("zh-cn".to_string()));
 }
 
 #[test]
@@ -22,14 +19,8 @@ fn annotate_with_lang_works() {
             tag: HtmlTag::P,
             raw_attributes: "id=\"foo\" lang=\"en\"".to_string(),
         },
-        HtmlEntity::Text {
-            tag_stack: [HtmlTag::P].into(),
-            raw_text: "English".to_string(),
-        },
-        HtmlEntity::EndTag {
-            tag_stack: [].into(),
-            tag: HtmlTag::P,
-        },
+        HtmlEntity::Text { tag_stack: [HtmlTag::P].into(), raw_text: "English".to_string() },
+        HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::P },
     ];
 
     assert_eq!(
@@ -52,10 +43,7 @@ fn annotate_with_lang_works() {
             },
             LangHtmlEntity {
                 lang: Some("en".to_string()),
-                entity: HtmlEntity::EndTag {
-                    tag_stack: [].into(),
-                    tag: HtmlTag::P,
-                },
+                entity: HtmlEntity::EndTag { tag_stack: [].into(), tag: HtmlTag::P },
             },
         ]
     );
