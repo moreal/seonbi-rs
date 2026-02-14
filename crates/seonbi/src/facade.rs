@@ -218,10 +218,7 @@ pub fn ko_kr() -> Configuration {
         debug_logger: None,
         quote: Some(QuoteOption::CurvedQuotes),
         cite: Some(CiteOption::AngleQuotes),
-        arrow: Some(ArrowOption {
-            bidir_arrow: true,
-            double_arrow: true,
-        }),
+        arrow: Some(ArrowOption { bidir_arrow: true, double_arrow: true }),
         ellipsis: true,
         em_dash: true,
         stop: Some(StopOption::Horizontal),
@@ -241,36 +238,55 @@ pub fn ko_kp() -> Configuration {
     config.quote = Some(QuoteOption::Guillemets);
     config.hanja = Some(HanjaOption {
         rendering: HanjaRenderingOption::HangulOnly,
-        reading: HanjaReadingOption {
-            dictionary: BTreeMap::new(),
-            initial_sound_law: false,
-        },
+        reading: HanjaReadingOption { dictionary: BTreeMap::new(), initial_sound_law: false },
     });
     config
 }
 
 pub fn presets() -> BTreeMap<String, Configuration> {
-    BTreeMap::from([
-        ("ko-kp".to_string(), ko_kp()),
-        ("ko-kr".to_string(), ko_kr()),
-    ])
+    BTreeMap::from([("ko-kp".to_string(), ko_kp()), ("ko-kr".to_string(), ko_kr())])
 }
 
-pub fn read_dictionary_file(path: &Path) -> Result<HanjaDictionary, std::io::Error> {
+fn parse_dictionary_data(data: &str) -> HanjaDictionary {
     let mut dict = BTreeMap::new();
-    let data = std::fs::read_to_string(path)?;
     for line in data.lines() {
         let mut columns = line.split('\t');
         if let (Some(hanja), Some(hangul)) = (columns.next(), columns.next()) {
             dict.insert(hanja.to_string(), hangul.to_string());
         }
     }
-    Ok(dict)
+    dict
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn read_dictionary_file(path: &Path) -> Result<HanjaDictionary, std::io::Error> {
+    let data = std::fs::read_to_string(path)?;
+    Ok(parse_dictionary_data(&data))
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn read_dictionary_file(_path: &Path) -> Result<HanjaDictionary, std::io::Error> {
+    Err(std::io::Error::new(
+        std::io::ErrorKind::Unsupported,
+        "read_dictionary_file is unavailable on wasm32 targets",
+    ))
 }
 
 pub fn south_korean_dictionary() -> HanjaDictionary {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("data/ko-kr-stdict.tsv");
-    let mut dict = read_dictionary_file(&path).unwrap_or_default();
+    let mut dict = {
+        #[cfg(any(feature = "freeze-dict", target_arch = "wasm32"))]
+        {
+            parse_dictionary_data(include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/data/ko-kr-stdict.tsv"
+            )))
+        }
+        #[cfg(not(any(feature = "freeze-dict", target_arch = "wasm32")))]
+        {
+            let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("data/ko-kr-stdict.tsv");
+            read_dictionary_file(&path).unwrap_or_default()
+        }
+    };
     for (k, v) in builtin_dictionary() {
         dict.entry(k).or_insert(v);
     }
@@ -290,10 +306,7 @@ fn builtin_dictionary() -> HanjaDictionary {
         ("困難".to_string(), "곤란".to_string()),
         ("國漢文混用體".to_string(), "국한문 혼용체".to_string()),
         ("大韓民國憲法".to_string(), "대한민국 헌법".to_string()),
-        (
-            "大韓民國臨時政府".to_string(),
-            "대한민국 임시 정부".to_string(),
-        ),
+        ("大韓民國臨時政府".to_string(), "대한민국 임시 정부".to_string()),
         ("臨時政府".to_string(), "임시 정부".to_string()),
         ("理念".to_string(), "이념".to_string()),
         ("國民投票".to_string(), "국민 투표".to_string()),
