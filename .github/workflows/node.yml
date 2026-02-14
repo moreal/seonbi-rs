@@ -21,8 +21,11 @@ jobs:
       - name: Install JS dependencies
         working-directory: crates/seonbi-node
         run: npm install
+      - name: Check Rust crate
+        run: cargo check -p seonbi-node
       - name: Build N-API module
         working-directory: crates/seonbi-node
         run: npx napi build --release --platform
-      - name: Run Rust unit tests
-        run: cargo test -p seonbi-node
+      - name: Run Node runtime tests
+        working-directory: crates/seonbi-node
+        run: node --test __tests__/index.spec.mjs
