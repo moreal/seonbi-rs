@@ -11,3 +11,6 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { workspace = true, features = ["extension-module"] }
 seonbi = { path = "../seonbi" }
+
+[build-dependencies]
+pyo3-build-config = "0.28"
