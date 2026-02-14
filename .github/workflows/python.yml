@@ -7,11 +7,43 @@ on:
   pull_request:
 
 jobs:
-  build-wheels:
-    runs-on: ${{ matrix.os }}
+  build-python-linux:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        target: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          target: ${{ matrix.target }}
+          manylinux: 2_28
+          args: --release --manifest-path crates/seonbi-python/Cargo.toml --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-wheels-linux-${{ matrix.target }}
+          path: dist
+
+  build-python-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          target: ${{ matrix.target }}
+          args: --release --manifest-path crates/seonbi-python/Cargo.toml --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-wheels-macos-${{ matrix.target }}
+          path: dist
+
+  build-python-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: PyO3/maturin-action@v1
@@ -20,7 +52,7 @@ jobs:
           args: --release --manifest-path crates/seonbi-python/Cargo.toml --out dist
       - uses: actions/upload-artifact@v4
         with:
-          name: python-wheels-${{ matrix.os }}
+          name: python-wheels-windows-x64
           path: dist
 
   test-python:
