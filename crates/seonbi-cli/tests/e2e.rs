@@ -167,6 +167,24 @@ fn no_kr_stdict_works() {
 }
 
 #[test]
+fn short_flags_for_dict_and_no_em_dash_work() {
+    let no_em_dash = run_cli(&["-M"], "a -- b".as_bytes());
+    assert!(
+        no_em_dash.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&no_em_dash.stderr)
+    );
+    assert_eq!(String::from_utf8(no_em_dash.stdout).unwrap(), "a -- b");
+
+    let dict_path = temp_path("dict_short", "tsv");
+    fs::write(&dict_path, "毛澤東\t마오쩌둥\n").expect("write dictionary");
+    let with_dict = run_cli(&["-D", dict_path.to_str().unwrap()], "<p>毛澤東</p>".as_bytes());
+    assert!(with_dict.status.success(), "stderr: {}", String::from_utf8_lossy(&with_dict.stderr));
+    assert_eq!(String::from_utf8(with_dict.stdout).unwrap(), "<p>마오쩌둥</p>");
+    let _ = fs::remove_file(dict_path);
+}
+
+#[test]
 fn version_and_debug_options_work() {
     let version = run_cli(&["-v"], b"");
     assert!(version.status.success(), "stderr: {}", String::from_utf8_lossy(&version.stderr));
