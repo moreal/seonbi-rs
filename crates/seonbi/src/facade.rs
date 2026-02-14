@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
-use std::path::Path;
 use std::sync::Arc;
+
+#[cfg(not(any(feature = "freeze-dict", target_arch = "wasm32")))]
+use std::path::Path;
 
 use crate::content_types::{
     ContentType, ContentTypeError, content_type_from_text, content_type_text, content_types,
@@ -258,18 +260,10 @@ fn parse_dictionary_data(data: &str) -> HanjaDictionary {
     dict
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(any(feature = "freeze-dict", target_arch = "wasm32")))]
 pub fn read_dictionary_file(path: &Path) -> Result<HanjaDictionary, std::io::Error> {
     let data = std::fs::read_to_string(path)?;
     Ok(parse_dictionary_data(&data))
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn read_dictionary_file(_path: &Path) -> Result<HanjaDictionary, std::io::Error> {
-    Err(std::io::Error::new(
-        std::io::ErrorKind::Unsupported,
-        "read_dictionary_file is unavailable on wasm32 targets",
-    ))
 }
 
 pub fn south_korean_dictionary() -> HanjaDictionary {
