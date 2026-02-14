@@ -124,6 +124,8 @@ fn ko_kp(py: Python<'_>) -> PyResult<Py<PyDict>> {
 }
 
 fn to_internal_config(config: ConfigurationInput) -> PyResult<InternalConfiguration> {
+    let em_dash = config.em_dash();
+
     let mut internal = if let Some(preset_name) = config.preset.as_deref() {
         preset_by_name(preset_name)?
     } else {
@@ -161,7 +163,7 @@ fn to_internal_config(config: ConfigurationInput) -> PyResult<InternalConfigurat
     if let Some(ellipsis) = config.ellipsis {
         internal.ellipsis = ellipsis;
     }
-    if let Some(em_dash) = config.em_dash() {
+    if let Some(em_dash) = em_dash {
         internal.em_dash = em_dash;
     }
     if let Some(stop) = config.stop.as_deref() {
