@@ -20,7 +20,19 @@
   "scripts": {
     "build": "napi build --release --platform",
     "build:debug": "napi build --platform",
-    "test": "node --test __tests__/index.spec.mjs"
+    "test": "node --test __tests__/index.spec.mjs",
+    "prepublishOnly": "napi prepublish -t npm"
+  },
+  "optionalDependencies": {
+    "@seonbi/seonbi-darwin-arm64": "0.1.0",
+    "@seonbi/seonbi-darwin-x64": "0.1.0",
+    "@seonbi/seonbi-linux-arm64-gnu": "0.1.0",
+    "@seonbi/seonbi-linux-x64-gnu": "0.1.0",
+    "@seonbi/seonbi-linux-x64-musl": "0.1.0",
+    "@seonbi/seonbi-win32-x64-msvc": "0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "@napi-rs/cli": "^3.0.0"
