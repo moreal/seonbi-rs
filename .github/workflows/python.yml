@@ -6,6 +6,9 @@ on:
       - main
   pull_request:
 
+env:
+  PYTHON_VERSION: '3.14'
+
 jobs:
   build-python-linux:
     runs-on: ubuntu-latest
@@ -14,11 +17,14 @@ jobs:
         target: [x86_64, aarch64]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
       - uses: PyO3/maturin-action@v1
         with:
           command: build
           target: ${{ matrix.target }}
-          python-version: '3.14'
+          python-version: ${{ env.PYTHON_VERSION }}
           manylinux: 2_28
           args: --release --manifest-path crates/seonbi-python/Cargo.toml --out dist
       - uses: actions/upload-artifact@v4
@@ -33,11 +39,14 @@ jobs:
         target: [x86_64, aarch64]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
       - uses: PyO3/maturin-action@v1
         with:
           command: build
           target: ${{ matrix.target }}
-          python-version: '3.14'
+          python-version: ${{ env.PYTHON_VERSION }}
           args: --release --manifest-path crates/seonbi-python/Cargo.toml --out dist
       - uses: actions/upload-artifact@v4
         with:
@@ -48,10 +57,13 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
       - uses: PyO3/maturin-action@v1
         with:
           command: build
-          python-version: '3.14'
+          python-version: ${{ env.PYTHON_VERSION }}
           args: --release --manifest-path crates/seonbi-python/Cargo.toml --out dist
       - uses: actions/upload-artifact@v4
         with:
@@ -65,7 +77,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Install build/test tools
         run: python -m pip install --upgrade pip maturin pytest
       - name: Build wheel
