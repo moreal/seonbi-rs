@@ -6,12 +6,18 @@ struct Unclosed<M> {
     buffer: Vec<HtmlEntity>,
 }
 
+type MatchCapture<M> = (M, String, String, String);
+type MatchStartFn<M> = dyn Fn(&[M], &str) -> Option<MatchCapture<M>>;
+type MatchEndFn<M> = dyn Fn(&str) -> Option<MatchCapture<M>>;
+type AreMatchesPairedFn<M> = dyn Fn(&M, &M) -> bool;
+type TransformPairFn<M> = dyn Fn(&M, &M, Vec<HtmlEntity>) -> Vec<HtmlEntity>;
+
 pub struct PairedTransformer<M> {
     pub ignores_tag_stack: Box<dyn Fn(&HtmlTagStack) -> bool>,
-    pub match_start: Box<dyn Fn(&[M], &str) -> Option<(M, String, String, String)>>,
-    pub match_end: Box<dyn Fn(&str) -> Option<(M, String, String, String)>>,
-    pub are_matches_paired: Box<dyn Fn(&M, &M) -> bool>,
-    pub transform_pair: Box<dyn Fn(&M, &M, Vec<HtmlEntity>) -> Vec<HtmlEntity>>,
+    pub match_start: Box<MatchStartFn<M>>,
+    pub match_end: Box<MatchEndFn<M>>,
+    pub are_matches_paired: Box<AreMatchesPairedFn<M>>,
+    pub transform_pair: Box<TransformPairFn<M>>,
 }
 
 pub fn transform_pairs<M: Clone>(

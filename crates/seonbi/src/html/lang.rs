@@ -65,7 +65,7 @@ pub fn extract_lang(raw_attrs: &str) -> Option<LanguageTag> {
         }
     }
 
-    let normalized = found
+    found
         .map(|s| {
             s.replace("&hyphen;", "-")
                 .replace("&dash;", "-")
@@ -75,9 +75,7 @@ pub fn extract_lang(raw_attrs: &str) -> Option<LanguageTag> {
                 .trim()
                 .to_ascii_lowercase()
         })
-        .filter(|s| !s.is_empty());
-
-    normalized
+        .filter(|s| !s.is_empty())
 }
 
 pub fn annotate_with_lang(entities: Vec<HtmlEntity>) -> Vec<LangHtmlEntity> {
@@ -95,10 +93,10 @@ pub fn annotate_with_lang(entities: Vec<HtmlEntity>) -> Vec<LangHtmlEntity> {
             }
             HtmlEntity::EndTag { tag, .. } => {
                 let this_lang = stack.first().and_then(|(_, l)| l.clone());
-                if let Some((t, _)) = stack.first() {
-                    if *t == tag {
-                        stack.remove(0);
-                    }
+                if let Some((t, _)) = stack.first()
+                    && *t == tag
+                {
+                    stack.remove(0);
                 }
                 out.push(LangHtmlEntity { lang: this_lang, entity });
             }

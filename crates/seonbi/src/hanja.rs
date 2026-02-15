@@ -481,10 +481,10 @@ fn analyze_hanja_text(text: &str) -> Option<Vec<(bool, String)>> {
         }
     }
 
-    if let Some(kind) = current_kind {
-        if !current_text.is_empty() {
-            grouped.push((kind, current_text));
-        }
+    if let Some(kind) = current_kind
+        && !current_text.is_empty()
+    {
+        grouped.push((kind, current_text));
     }
 
     Some(grouped)

@@ -12,14 +12,11 @@ fn k_hangul_data_contains_readings() {
     let readings = k_hangul_data().get(&'識').expect("must exist");
     assert_eq!(
         readings.get(&'식'),
-        Some(&HanjaReadingCitation(CharacterSet::KS_X_1001, BTreeSet::from([Purpose::Education])))
+        Some(&HanjaReadingCitation(CharacterSet::KsX1001, BTreeSet::from([Purpose::Education])))
     );
     assert_eq!(
         readings.get(&'지'),
-        Some(&HanjaReadingCitation(
-            CharacterSet::KS_X_1001,
-            BTreeSet::from([Purpose::PersonalName])
-        ))
+        Some(&HanjaReadingCitation(CharacterSet::KsX1001, BTreeSet::from([Purpose::PersonalName])))
     );
 }
 
@@ -48,8 +45,8 @@ fn hanja_reading_citation_parses_json_text() {
                 BTreeSet::from([Purpose::Education, Purpose::PersonalName]),
             )),
         ),
-        ("\"0\"", Some(HanjaReadingCitation(CharacterSet::KS_X_1001, BTreeSet::new()))),
-        ("\"1\"", Some(HanjaReadingCitation(CharacterSet::KS_X_1002, BTreeSet::new()))),
+        ("\"0\"", Some(HanjaReadingCitation(CharacterSet::KsX1001, BTreeSet::new()))),
+        ("\"1\"", Some(HanjaReadingCitation(CharacterSet::KsX1002, BTreeSet::new()))),
     ];
 
     for (raw, expected) in cases {

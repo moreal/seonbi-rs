@@ -244,7 +244,7 @@ pub fn transform_quote(quotes: &Quotes, entities: Vec<HtmlEntity>) -> Vec<HtmlEn
     let quotes = quotes.clone();
     let paired = PairedTransformer {
         ignores_tag_stack: Box::new(is_preserved_tag_stack),
-        match_start: Box::new(|prev, text| match_quote_start(prev, text)),
+        match_start: Box::new(match_quote_start),
         match_end: Box::new(match_quote_end),
         are_matches_paired: Box::new(|(a, _), (b, _)| are_quote_pairs(*a, *b)),
         transform_pair: Box::new(move |start, end, buffer| {
@@ -790,7 +790,7 @@ fn replace_arrows(options: &BTreeSet<ArrowTransformationOption>, txt: &str) -> S
 }
 
 pub fn transform_ellipsis(input: Vec<HtmlEntity>) -> Vec<HtmlEntity> {
-    transform_text(input, |txt| replace_ellipsis(txt))
+    transform_text(input, replace_ellipsis)
 }
 
 fn replace_ellipsis(txt: &str) -> String {
@@ -824,7 +824,7 @@ fn replace_ellipsis(txt: &str) -> String {
 }
 
 pub fn transform_em_dash(input: Vec<HtmlEntity>) -> Vec<HtmlEntity> {
-    transform_text(input, |txt| replace_em_dash(txt))
+    transform_text(input, replace_em_dash)
 }
 
 fn replace_em_dash(txt: &str) -> String {
@@ -1006,10 +1006,10 @@ fn find_first(text: &str, tokens: &[&str], ci_for_hex: bool) -> Option<(String, 
 
     for token in tokens {
         let ci = ci_for_hex && token.contains("&#x");
-        if let Some((idx, len)) = find_token(text, token, ci) {
-            if best.is_none_or(|(b, _)| idx < b) {
-                best = Some((idx, len));
-            }
+        if let Some((idx, len)) = find_token(text, token, ci)
+            && best.is_none_or(|(b, _)| idx < b)
+        {
+            best = Some((idx, len));
         }
     }
 

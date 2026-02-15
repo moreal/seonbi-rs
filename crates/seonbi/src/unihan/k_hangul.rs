@@ -13,8 +13,8 @@ pub struct HanjaReadingCitation(pub CharacterSet, pub BTreeSet<Purpose>);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CharacterSet {
-    KS_X_1001,
-    KS_X_1002,
+    KsX1001,
+    KsX1002,
     NonStandard,
 }
 
@@ -34,11 +34,11 @@ impl FromStr for HanjaReadingCitation {
             match first as char {
                 '0' => {
                     idx = 1;
-                    CharacterSet::KS_X_1001
+                    CharacterSet::KsX1001
                 }
                 '1' => {
                     idx = 1;
-                    CharacterSet::KS_X_1002
+                    CharacterSet::KsX1002
                 }
                 'X' => {
                     idx = 1;
