@@ -52,8 +52,8 @@ The original `seonbi` 0.5.0 CLI exposes `-D` for both `--no-em-dash` and
 In this Rust port, `clap` cannot safely keep that duplicate short option, so
 the mapping is:
 
-- `-D, --dict FILE`
-- `-M, --no-em-dash`
+- `-D, --no-em-dash`
+- `--dict FILE` (long option only)
 
 Long options are unchanged.
 
@@ -63,5 +63,5 @@ Long options are unchanged.
   both `-D,--no-em-dash` and `-D,--dict FILE`.
 - With that duplication, short-option parsing can be context-sensitive and
   surprising.
-- To keep parsing deterministic in `clap`, this port reserves `-D` for
-  dictionary input and moves only `--no-em-dash` to `-M`.
+- To keep parsing deterministic in `clap`, this port keeps `-D` as
+  `--no-em-dash` and provides dictionary input as `--dict FILE` only.

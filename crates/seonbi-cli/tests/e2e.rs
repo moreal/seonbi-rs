@@ -83,7 +83,7 @@ fn content_type_plain_text_and_markdown_work() {
 
 #[test]
 fn quote_cite_and_stop_options_work() {
-    let quote = run_cli(&["-q", "guillemets"], "'a' \"b\" c".as_bytes());
+    let quote = run_cli(&["-e", "utf-8", "-q", "guillemets"], "'a' \"b\" c".as_bytes());
     assert!(quote.status.success(), "stderr: {}", String::from_utf8_lossy(&quote.stderr));
     let out = String::from_utf8(quote.stdout).unwrap();
     assert!(out.contains("&#x3008;a&#x3009; &#x300a;b&#x300b; c"), "output: {out}");
@@ -101,7 +101,7 @@ fn quote_cite_and_stop_options_work() {
 
 #[test]
 fn no_quote_and_maintain_hanja_work() {
-    let no_quote = run_cli(&["--no-quote"], "\"A\"".as_bytes());
+    let no_quote = run_cli(&["-e", "utf-8", "--no-quote"], "\"A\"".as_bytes());
     assert!(no_quote.status.success(), "stderr: {}", String::from_utf8_lossy(&no_quote.stderr));
     assert_eq!(String::from_utf8(no_quote.stdout).unwrap(), "\"A\"");
 
@@ -168,13 +168,13 @@ fn no_kr_stdict_works() {
 
 #[test]
 fn short_flags_for_dict_and_no_em_dash_work() {
-    let no_em_dash = run_cli(&["-M"], "a -- b".as_bytes());
+    let no_em_dash = run_cli(&["-e", "utf-8", "-D"], "a -- b".as_bytes());
     assert!(no_em_dash.status.success(), "stderr: {}", String::from_utf8_lossy(&no_em_dash.stderr));
     assert_eq!(String::from_utf8(no_em_dash.stdout).unwrap(), "a -- b");
 
     let dict_path = temp_path("dict_short", "tsv");
     fs::write(&dict_path, "毛澤東\t마오쩌둥\n").expect("write dictionary");
-    let with_dict = run_cli(&["-D", dict_path.to_str().unwrap()], "<p>毛澤東</p>".as_bytes());
+    let with_dict = run_cli(&["--dict", dict_path.to_str().unwrap()], "<p>毛澤東</p>".as_bytes());
     assert!(with_dict.status.success(), "stderr: {}", String::from_utf8_lossy(&with_dict.stderr));
     assert_eq!(String::from_utf8(with_dict.stdout).unwrap(), "<p>마오쩌둥</p>");
     let _ = fs::remove_file(dict_path);

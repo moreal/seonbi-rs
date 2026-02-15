@@ -277,7 +277,7 @@ fn parse_input(input: ApiInput) -> Result<ParsedInput, String> {
         let preset_map = presets();
         preset_map.get(&preset_key).cloned().ok_or_else(|| {
             format!(
-                "No such preset: {preset}; available presets: {}",
+                "Error in $: No such preset: {preset}; available presets: {}",
                 preset_map.keys().cloned().collect::<Vec<_>>().join(", ")
             )
         })?
@@ -304,39 +304,60 @@ fn parse_input(input: ApiInput) -> Result<ParsedInput, String> {
 fn parse_quote_option(value: Option<&str>) -> Result<Option<QuoteOption>, String> {
     match value {
         None => Ok(None),
-        Some("curved-quotes") => Ok(Some(QuoteOption::CurvedQuotes)),
-        Some("vertical-corner-brackets") => Ok(Some(QuoteOption::VerticalCornerBrackets)),
-        Some("horizontal-corner-brackets") => Ok(Some(QuoteOption::HorizontalCornerBrackets)),
-        Some("guillemets") => Ok(Some(QuoteOption::Guillemets)),
-        Some("curved-single-quotes-with-q") => Ok(Some(QuoteOption::CurvedSingleQuotesWithQ)),
-        Some("vertical-corner-brackets-with-q") => {
-            Ok(Some(QuoteOption::VerticalCornerBracketsWithQ))
-        }
-        Some("horizontal-corner-brackets-with-q") => {
+        Some("CurvedQuotes") => Ok(Some(QuoteOption::CurvedQuotes)),
+        Some("VerticalCornerBrackets") => Ok(Some(QuoteOption::VerticalCornerBrackets)),
+        Some("HorizontalCornerBrackets") => Ok(Some(QuoteOption::HorizontalCornerBrackets)),
+        Some("Guillemets") => Ok(Some(QuoteOption::Guillemets)),
+        Some("CurvedSingleQuotesWithQ") => Ok(Some(QuoteOption::CurvedSingleQuotesWithQ)),
+        Some("VerticalCornerBracketsWithQ") => Ok(Some(QuoteOption::VerticalCornerBracketsWithQ)),
+        Some("HorizontalCornerBracketsWithQ") => {
             Ok(Some(QuoteOption::HorizontalCornerBracketsWithQ))
         }
-        Some(other) => Err(format!("cannot parse value `{other}` as quote option")),
+        Some(other) => Err(format_tag_parse_error(
+            "$.quote",
+            "Text.Seonbi.Facade.QuoteOption",
+            &[
+                "CurvedQuotes",
+                "VerticalCornerBrackets",
+                "HorizontalCornerBrackets",
+                "Guillemets",
+                "CurvedSingleQuotesWithQ",
+                "VerticalCornerBracketsWithQ",
+                "HorizontalCornerBracketsWithQ",
+            ],
+            other,
+        )),
     }
 }
 
 fn parse_cite_option(value: Option<&str>) -> Result<Option<CiteOption>, String> {
     match value {
         None => Ok(None),
-        Some("angle-quotes") => Ok(Some(CiteOption::AngleQuotes)),
-        Some("corner-brackets") => Ok(Some(CiteOption::CornerBrackets)),
-        Some("angle-quotes-with-cite") => Ok(Some(CiteOption::AngleQuotesWithCite)),
-        Some("corner-brackets-with-cite") => Ok(Some(CiteOption::CornerBracketsWithCite)),
-        Some(other) => Err(format!("cannot parse value `{other}` as cite option")),
+        Some("AngleQuotes") => Ok(Some(CiteOption::AngleQuotes)),
+        Some("CornerBrackets") => Ok(Some(CiteOption::CornerBrackets)),
+        Some("AngleQuotesWithCite") => Ok(Some(CiteOption::AngleQuotesWithCite)),
+        Some("CornerBracketsWithCite") => Ok(Some(CiteOption::CornerBracketsWithCite)),
+        Some(other) => Err(format_tag_parse_error(
+            "$.cite",
+            "Text.Seonbi.Facade.CiteOption",
+            &["AngleQuotes", "CornerBrackets", "AngleQuotesWithCite", "CornerBracketsWithCite"],
+            other,
+        )),
     }
 }
 
 fn parse_stop_option(value: Option<&str>) -> Result<Option<StopOption>, String> {
     match value {
         None => Ok(None),
-        Some("horizontal") => Ok(Some(StopOption::Horizontal)),
-        Some("horizontal-with-slashes") => Ok(Some(StopOption::HorizontalWithSlashes)),
-        Some("vertical") => Ok(Some(StopOption::Vertical)),
-        Some(other) => Err(format!("cannot parse value `{other}` as stop option")),
+        Some("Horizontal") => Ok(Some(StopOption::Horizontal)),
+        Some("HorizontalWithSlashes") => Ok(Some(StopOption::HorizontalWithSlashes)),
+        Some("Vertical") => Ok(Some(StopOption::Vertical)),
+        Some(other) => Err(format_tag_parse_error(
+            "$.stop",
+            "Text.Seonbi.Facade.StopOption",
+            &["Horizontal", "HorizontalWithSlashes", "Vertical"],
+            other,
+        )),
     }
 }
 
@@ -346,13 +367,25 @@ fn parse_hanja_option(input: Option<HanjaInput>) -> Result<Option<HanjaOption>, 
     };
 
     let rendering = match hanja_input.rendering.as_str() {
-        "hangul-only" => HanjaRenderingOption::HangulOnly,
-        "hanja-in-parentheses" => HanjaRenderingOption::HanjaInParentheses,
-        "disambiguating-hanja-in-parentheses" => {
+        "HangulOnly" => HanjaRenderingOption::HangulOnly,
+        "HanjaInParentheses" => HanjaRenderingOption::HanjaInParentheses,
+        "DisambiguatingHanjaInParentheses" => {
             HanjaRenderingOption::DisambiguatingHanjaInParentheses
         }
-        "hanja-in-ruby" => HanjaRenderingOption::HanjaInRuby,
-        other => return Err(format!("cannot parse value `{other}` as hanja rendering option")),
+        "HanjaInRuby" => HanjaRenderingOption::HanjaInRuby,
+        other => {
+            return Err(format_tag_parse_error(
+                "$.hanja.rendering",
+                "Text.Seonbi.Facade.HanjaRenderingOption",
+                &[
+                    "HangulOnly",
+                    "HanjaInParentheses",
+                    "DisambiguatingHanjaInParentheses",
+                    "HanjaInRuby",
+                ],
+                other,
+            ));
+        }
     };
 
     let mut dictionary = hanja_input.reading.dictionary;
@@ -374,6 +407,19 @@ fn parse_hanja_option(input: Option<HanjaInput>) -> Result<Option<HanjaOption>, 
             dictionary,
         },
     }))
+}
+
+fn format_tag_parse_error(
+    json_path: &str,
+    type_name: &str,
+    expected_tags: &[&str],
+    found_tag: &str,
+) -> String {
+    let expected =
+        expected_tags.iter().map(|tag| format!("\"{tag}\"")).collect::<Vec<_>>().join(",");
+    format!(
+        "Error in {json_path}: parsing {type_name} failed, expected one of the tags [{expected}], but found tag \"{found_tag}\""
+    )
 }
 
 fn apply_warning_comments(warnings: &[String], content: &str) -> String {

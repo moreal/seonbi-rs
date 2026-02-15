@@ -3,7 +3,7 @@ use std::fs;
 use std::io::{self, Read, Write};
 use std::process::ExitCode;
 
-use clap::{Parser, ValueEnum};
+use clap::{Parser, ValueEnum, error::ErrorKind};
 use seonbi::{
     ArrowOption, CiteOption, Configuration, HanjaDictionary, HanjaOption, HanjaReadingOption,
     HanjaRenderingOption, HtmlEntity, QuoteOption, StopOption, parse_content_type, presets,
@@ -147,10 +147,7 @@ struct Args {
     #[arg(long = "no-ellipsis", short = 'E')]
     no_ellipsis: bool,
 
-    // Original seonbi 0.5.0 uses `-D` for both `--no-em-dash` and `--dict`.
-    // In clap this is ambiguous, so we keep `-D` for `--dict` and use `-M`
-    // for `--no-em-dash`.
-    #[arg(long = "no-em-dash", short = 'M')]
+    #[arg(long = "no-em-dash", short = 'D')]
     no_em_dash: bool,
 
     #[arg(long = "stop", short = 's', value_enum)]
@@ -168,7 +165,7 @@ struct Args {
     #[arg(long = "read-hanja", short = 'R', value_parser = parse_hanja_reading_arg)]
     read_hanja: Vec<HanjaReadingArg>,
 
-    #[arg(long = "dict", short = 'D')]
+    #[arg(long = "dict")]
     dict: Vec<String>,
 
     #[arg(long = "no-kr-stdict", short = 'S')]
@@ -188,7 +185,17 @@ struct Args {
 }
 
 fn main() -> ExitCode {
-    let args = Args::parse();
+    let args = match Args::try_parse() {
+        Ok(args) => args,
+        Err(err) => {
+            if matches!(err.kind(), ErrorKind::DisplayHelp | ErrorKind::DisplayVersion) {
+                let _ = err.print();
+                return ExitCode::SUCCESS;
+            }
+            let _ = err.print();
+            return ExitCode::FAILURE;
+        }
+    };
     match run(args) {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {
@@ -440,6 +447,12 @@ fn detect_encoding_name(bytes: &[u8]) -> &'static str {
             "utf32be" => return "utf32be",
             _ => {}
         }
+    }
+
+    // Original seonbi can auto-detect ASCII and then fail when iconv is unavailable.
+    // Keep that behavior for compatibility in comparison E2E.
+    if bytes.iter().all(|b| b.is_ascii()) {
+        return "ascii";
     }
 
     "utf8"

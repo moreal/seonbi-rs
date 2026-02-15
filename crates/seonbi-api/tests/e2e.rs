@@ -134,7 +134,50 @@ fn parse_http_response(raw: &[u8]) -> Result<HttpResponse, String> {
         }
     }
 
-    Ok(HttpResponse { status, headers, body: raw[sep + 4..].to_vec() })
+    let mut body = raw[sep + 4..].to_vec();
+    if headers
+        .get("transfer-encoding")
+        .is_some_and(|value| value.to_ascii_lowercase().contains("chunked"))
+    {
+        body = decode_chunked_body(&body)?;
+    }
+
+    Ok(HttpResponse { status, headers, body })
+}
+
+fn decode_chunked_body(body: &[u8]) -> Result<Vec<u8>, String> {
+    let mut pos = 0usize;
+    let mut out = Vec::new();
+
+    loop {
+        let size_end = body[pos..]
+            .windows(2)
+            .position(|w| w == b"\r\n")
+            .ok_or_else(|| "invalid chunked body: missing chunk size terminator".to_string())?
+            + pos;
+
+        let size_line = std::str::from_utf8(&body[pos..size_end]).map_err(|e| e.to_string())?;
+        let size_hex = size_line.split(';').next().unwrap_or("").trim();
+        let size = usize::from_str_radix(size_hex, 16)
+            .map_err(|e| format!("invalid chunk size `{size_hex}`: {e}"))?;
+
+        pos = size_end + 2;
+        if size == 0 {
+            break;
+        }
+        if pos + size > body.len() {
+            return Err("invalid chunked body: truncated chunk payload".to_string());
+        }
+        out.extend_from_slice(&body[pos..pos + size]);
+        pos += size;
+
+        if body.get(pos..pos + 2) != Some(b"\r\n") {
+            return Err("invalid chunked body: missing chunk terminator".to_string());
+        }
+        pos += 2;
+    }
+
+    Ok(out)
 }
 
 fn parse_json_body(body: &[u8]) -> Value {
@@ -340,7 +383,7 @@ fn hanja_dictionary_and_use_dictionaries_work() {
   "content": "<p>困難 孫文</p>",
   "contentType": "text/html",
   "hanja": {
-    "rendering": "hangul-only",
+    "rendering": "HangulOnly",
     "reading": {
       "initialSoundLaw": true,
       "dictionary": {"孫文": "쑨원"},
