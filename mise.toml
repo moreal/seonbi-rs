@@ -51,3 +51,33 @@ run = "echo JS runtime tests completed"
 description = "Run all local binding tests (JS runtimes + wasm)"
 depends = ["test-js-all", "test-wasm"]
 run = "echo All binding tests completed"
+
+[tasks.e2e-cli-original]
+description = "Run CLI original-vs-ported E2E comparison using .tools binaries"
+run = """
+SEONBI_ORIGINAL_BIN="$(git rev-parse --show-toplevel)/.tools/original/seonbi-0.5.0/seonbi" \
+  cargo test -p seonbi-cli --test e2e_compare -- --nocapture
+"""
+
+[tasks.e2e-api-original]
+description = "Run API original-vs-ported E2E comparison using .tools binaries"
+run = """
+set -euo pipefail
+orig_api="$(git rev-parse --show-toplevel)/.tools/original/seonbi-0.5.0/seonbi-api"
+port=3800
+"$orig_api" --host 127.0.0.1 --port "$port" >/tmp/seonbi-original-api.log 2>&1 &
+orig_pid=$!
+cleanup() {
+  kill "$orig_pid" >/dev/null 2>&1 || true
+  wait "$orig_pid" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+sleep 0.3
+SEONBI_ORIGINAL_API_URL="http://127.0.0.1:${port}" \
+  cargo test -p seonbi-api --test e2e compares_with_original_when_configured -- --nocapture
+"""
+
+[tasks.e2e-original-all]
+description = "Run both CLI/API original-vs-ported E2E comparisons"
+depends = ["e2e-cli-original", "e2e-api-original"]
+run = "echo Original comparison E2E tests completed"
