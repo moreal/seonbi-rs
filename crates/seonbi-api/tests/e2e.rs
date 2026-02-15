@@ -33,10 +33,10 @@ impl RunningServer {
 
     fn wait_until_ready(&self) {
         for _ in 0..80 {
-            if let Ok(resp) = send_http(self.port, "OPTIONS", "/", None, &[]) {
-                if resp.status == 200 {
-                    return;
-                }
+            if let Ok(resp) = send_http(self.port, "OPTIONS", "/", None, &[])
+                && resp.status == 200
+            {
+                return;
             }
             thread::sleep(Duration::from_millis(50));
         }

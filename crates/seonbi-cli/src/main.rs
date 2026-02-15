@@ -502,7 +502,7 @@ fn decode_text(encoding_name: &str, bytes: &[u8]) -> Result<String, String> {
 }
 
 fn decode_utf16(encoding: &str, bytes: &[u8]) -> Result<String, String> {
-    if bytes.len() % 2 != 0 {
+    if !bytes.len().is_multiple_of(2) {
         return Err("invalid UTF-16 byte length".to_string());
     }
 
@@ -524,7 +524,7 @@ fn decode_utf16(encoding: &str, bytes: &[u8]) -> Result<String, String> {
 }
 
 fn decode_utf32(encoding: &str, bytes: &[u8]) -> Result<String, String> {
-    if bytes.len() % 4 != 0 {
+    if !bytes.len().is_multiple_of(4) {
         return Err("invalid UTF-32 byte length".to_string());
     }
 

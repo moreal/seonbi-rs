@@ -46,7 +46,7 @@ where
 fn assert_equivalent(original_bin: &Path, args: &[&str], stdin_input: &str) {
     let ported_bin = current_bin_path();
 
-    let original = run_binary(&original_bin, args, stdin_input);
+    let original = run_binary(original_bin, args, stdin_input);
     let ported = run_binary(&ported_bin, args, stdin_input);
 
     assert_eq!(
@@ -125,7 +125,7 @@ fn compare_file_io() {
             input_path.to_str().expect("input path"),
         ];
 
-        let original = run_binary(&original_bin, &args_original, "");
+        let original = run_binary(original_bin, &args_original, "");
         let ported = run_binary(&ported_bin, &args_ported, "");
 
         assert_eq!(
@@ -168,7 +168,7 @@ fn compare_dict_short_option() {
             input_path.to_str().expect("input path"),
         ];
 
-        let original = run_binary(&original_bin, &args_original, "");
+        let original = run_binary(original_bin, &args_original, "");
         let ported = run_binary(&ported_bin, &args_ported, "");
 
         assert_eq!(
