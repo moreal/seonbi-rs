@@ -366,7 +366,7 @@ fn match_quote_end(text: &str) -> Option<((QuotePunct, String), String, String, 
     }
 
     let (idx, punct, token) = candidates.into_iter().min_by_key(|(idx, _, _)| *idx)?;
-    if idx + token.len() >= text.len() {
+    if idx + token.len() > text.len() {
         return None;
     }
 

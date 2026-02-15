@@ -75,6 +75,7 @@ fn compare_stdin_stdout_matrix() {
         let cases: &[(&str, &[&str], &str)] = &[
             ("preset ko-kr", &["-p", "ko-kr"], "<p>漢字</p>"),
             ("preset ko-kp", &["-p", "ko-kp"], "<p>平壤 冷麵</p>"),
+            ("quote at text end", &["-e", "utf-8", "-p", "ko-kr"], "<p>\"abc\"</p>"),
             ("quote", &["-q", "guillemets"], "'a' \"b\" c"),
             ("cite", &["-c", "angle-quotes-with-cite"], "<p>&lt;&lt;無情&gt;&gt;</p>"),
             ("arrow bidir+double", &["-b", "-d"], "<p>A <-> B => C</p>"),
