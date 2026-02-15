@@ -9,3 +9,8 @@
 ## Binding API Design
 
 - Binding APIs must be idiomatic for each target language and consistent within that language.
+
+## Local Verification Before Commit
+
+- When implementing work, add or update `mise` tasks so the change can be tested locally.
+- Before committing, verify the change through the `pre-commit` hook and ensure it passes.
