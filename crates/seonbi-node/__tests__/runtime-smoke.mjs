@@ -3,10 +3,35 @@ import assert from 'node:assert/strict'
 import * as bindingModule from '../index.js'
 const binding = bindingModule.default ?? bindingModule
 
-const output = binding.transform(binding.koKr(), '<p>"abc"</p>')
-assert.ok(output.includes('&ldquo;abc&rdquo;'))
+const cases = [
+  {
+    quote: 'CurvedQuotes',
+    contentType: 'text/html',
+    input: '<p>"abc"</p>',
+    expected: '<p>&ldquo;abc&rdquo;</p>',
+  },
+  {
+    quote: 'CurvedQuotes',
+    contentType: 'text/markdown',
+    input: '"abc"',
+    expected: '“abc”\n',
+  },
+  {
+    quote: 'Guillemets',
+    contentType: 'text/html',
+    input: '<p>"abc"</p>',
+    expected: '<p>&#x300a;abc&#x300b;</p>',
+  },
+  {
+    quote: 'Guillemets',
+    contentType: 'text/markdown',
+    input: '"abc"',
+    expected: '《abc》\n',
+  },
+]
 
-const markdownConfig = { ...binding.koKr(), contentType: 'text/markdown' }
-const markdownOutput = binding.transform(markdownConfig, '"abc"')
-assert.ok(markdownOutput.includes('“abc”'))
-assert.ok(!markdownOutput.includes('&ldquo;'))
+for (const c of cases) {
+  const config = { ...binding.koKr(), quote: c.quote, contentType: c.contentType }
+  const output = binding.transform(config, c.input)
+  assert.equal(output, c.expected, `quote=${c.quote}, contentType=${c.contentType}`)
+}

@@ -14,12 +14,61 @@ test('transform performs quote replacement', () => {
   assert.ok(output.includes('&ldquo;abc&rdquo;'))
 })
 
-test('transform output differs by content type for koKr', () => {
-  const htmlOutput = binding.transform(binding.koKr(), '<p>"abc"</p>')
-  assert.ok(htmlOutput.includes('&ldquo;abc&rdquo;'))
+test('transform covers quote/contentType matrix for koKr', () => {
+  const cases = [
+    {
+      quote: 'CurvedQuotes',
+      contentType: 'text/html',
+      input: '<p>"abc"</p>',
+      expected: '<p>&ldquo;abc&rdquo;</p>',
+    },
+    {
+      quote: 'CurvedQuotes',
+      contentType: 'application/xhtml+xml',
+      input: '<p>"abc"</p>',
+      expected: '<p>&ldquo;abc&rdquo;</p>',
+    },
+    {
+      quote: 'CurvedQuotes',
+      contentType: 'text/markdown',
+      input: '"abc"',
+      expected: '“abc”\n',
+    },
+    {
+      quote: 'CurvedQuotes',
+      contentType: 'text/plain',
+      input: '"abc"',
+      expected: '“abc”',
+    },
+    {
+      quote: 'Guillemets',
+      contentType: 'text/html',
+      input: '<p>"abc"</p>',
+      expected: '<p>&#x300a;abc&#x300b;</p>',
+    },
+    {
+      quote: 'Guillemets',
+      contentType: 'application/xhtml+xml',
+      input: '<p>"abc"</p>',
+      expected: '<p>&#x300a;abc&#x300b;</p>',
+    },
+    {
+      quote: 'Guillemets',
+      contentType: 'text/markdown',
+      input: '"abc"',
+      expected: '《abc》\n',
+    },
+    {
+      quote: 'Guillemets',
+      contentType: 'text/plain',
+      input: '"abc"',
+      expected: '《abc》',
+    },
+  ]
 
-  const markdownConfig = { ...binding.koKr(), contentType: 'text/markdown' }
-  const markdownOutput = binding.transform(markdownConfig, '"abc"')
-  assert.ok(markdownOutput.includes('“abc”'))
-  assert.ok(!markdownOutput.includes('&ldquo;'))
+  for (const c of cases) {
+    const config = { ...binding.koKr(), quote: c.quote, contentType: c.contentType }
+    const output = binding.transform(config, c.input)
+    assert.equal(output, c.expected, `quote=${c.quote}, contentType=${c.contentType}`)
+  }
 })
