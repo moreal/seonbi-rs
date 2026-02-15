@@ -14,7 +14,7 @@ This repository now includes multi-language bindings around `crates/seonbi`:
 
 - Node: `cd crates/seonbi-node && npm install && npx napi build --release --platform`
 - WASM: `wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi`
-- Python: `maturin build --release --manifest-path crates/seonbi-python/Cargo.toml`
+- Python: `maturin build --release --manifest-path crates/seonbi-python/Cargo.toml --out crates/seonbi-python/dist`
 
 ### Git Hooks
 
