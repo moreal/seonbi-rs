@@ -13,14 +13,71 @@ fn smoke_test() {
 }
 
 #[wasm_bindgen_test]
-fn transform_output_differs_by_content_type_for_ko_kr() {
-    let html_output =
-        seonbi_wasm::transform(seonbi_wasm::ko_kr(), "<p>\"abc\"</p>").expect("html transform");
-    assert_eq!(html_output, "<p>&ldquo;abc&rdquo;</p>");
+fn quote_and_content_type_matrix_for_ko_kr() {
+    struct Case {
+        quote: seonbi_wasm::QuoteOption,
+        content_type: &'static str,
+        input: &'static str,
+        expected: &'static str,
+    }
 
-    let mut markdown_config = seonbi_wasm::ko_kr();
-    markdown_config.content_type = Some("text/markdown".to_string());
-    let markdown_output =
-        seonbi_wasm::transform(markdown_config, "\"abc\"").expect("markdown transform");
-    assert_eq!(markdown_output, "“abc”\n");
+    let cases = [
+        Case {
+            quote: seonbi_wasm::QuoteOption::CurvedQuotes,
+            content_type: "text/html",
+            input: "<p>\"abc\"</p>",
+            expected: "<p>&ldquo;abc&rdquo;</p>",
+        },
+        Case {
+            quote: seonbi_wasm::QuoteOption::CurvedQuotes,
+            content_type: "application/xhtml+xml",
+            input: "<p>\"abc\"</p>",
+            expected: "<p>&ldquo;abc&rdquo;</p>",
+        },
+        Case {
+            quote: seonbi_wasm::QuoteOption::CurvedQuotes,
+            content_type: "text/markdown",
+            input: "\"abc\"",
+            expected: "“abc”\n",
+        },
+        Case {
+            quote: seonbi_wasm::QuoteOption::CurvedQuotes,
+            content_type: "text/plain",
+            input: "\"abc\"",
+            expected: "“abc”",
+        },
+        Case {
+            quote: seonbi_wasm::QuoteOption::Guillemets,
+            content_type: "text/html",
+            input: "<p>\"abc\"</p>",
+            expected: "<p>&#x300a;abc&#x300b;</p>",
+        },
+        Case {
+            quote: seonbi_wasm::QuoteOption::Guillemets,
+            content_type: "application/xhtml+xml",
+            input: "<p>\"abc\"</p>",
+            expected: "<p>&#x300a;abc&#x300b;</p>",
+        },
+        Case {
+            quote: seonbi_wasm::QuoteOption::Guillemets,
+            content_type: "text/markdown",
+            input: "\"abc\"",
+            expected: "《abc》\n",
+        },
+        Case {
+            quote: seonbi_wasm::QuoteOption::Guillemets,
+            content_type: "text/plain",
+            input: "\"abc\"",
+            expected: "《abc》",
+        },
+    ];
+
+    for case in cases {
+        let mut config = seonbi_wasm::ko_kr();
+        config.quote = Some(case.quote);
+        config.content_type = Some(case.content_type.to_string());
+        let output =
+            seonbi_wasm::transform(config, case.input).expect("matrix transform should succeed");
+        assert_eq!(output, case.expected);
+    }
 }
