@@ -121,18 +121,16 @@ def _configuration_from_dict(payload: dict[str, Any]) -> Configuration:
     arrow_payload = payload.get("arrow")
     if isinstance(arrow_payload, dict):
         arrow = ArrowOption(
-            bidir_arrow=bool(arrow_payload.get("bidir_arrow", arrow_payload.get("bidirArrow", False))),
-            double_arrow=bool(arrow_payload.get("double_arrow", arrow_payload.get("doubleArrow", False))),
+            bidir_arrow=bool(arrow_payload.get("bidir_arrow", False)),
+            double_arrow=bool(arrow_payload.get("double_arrow", False)),
         )
 
     hanja: HanjaOption | None = None
     hanja_payload = payload.get("hanja")
     if isinstance(hanja_payload, dict):
         reading_payload = hanja_payload.get("reading") if isinstance(hanja_payload.get("reading"), dict) else {}
-        initial_sound_law = bool(
-            reading_payload.get("initial_sound_law", reading_payload.get("initialSoundLaw", False))
-        )
-        use_dictionaries = reading_payload.get("use_dictionaries", reading_payload.get("useDictionaries", []))
+        initial_sound_law = bool(reading_payload.get("initial_sound_law", False))
+        use_dictionaries = reading_payload.get("use_dictionaries", [])
         dictionary = reading_payload.get("dictionary", {})
         hanja = HanjaOption(
             rendering=HanjaRenderingOption(str(hanja_payload["rendering"])),
@@ -148,13 +146,13 @@ def _configuration_from_dict(payload: dict[str, Any]) -> Configuration:
     stop = payload.get("stop")
 
     return Configuration(
-        content_type=str(payload.get("content_type", payload.get("contentType", "text/html"))),
+        content_type=str(payload.get("content_type", "text/html")),
         preset=payload.get("preset") if isinstance(payload.get("preset"), str) else None,
         quote=QuoteOption(str(quote)) if quote is not None else None,
         cite=CiteOption(str(cite)) if cite is not None else None,
         arrow=arrow,
         ellipsis=bool(payload.get("ellipsis", False)),
-        em_dash=bool(payload.get("em_dash", payload.get("emDash", False))),
+        em_dash=bool(payload.get("em_dash", False)),
         stop=StopOption(str(stop)) if stop is not None else None,
         hanja=hanja,
     )

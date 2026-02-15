@@ -15,43 +15,39 @@ use seonbi::{
 #[derive(Debug)]
 struct ConfigurationInput {
     content_type: Option<String>,
-    content_type_camel: Option<String>,
     preset: Option<String>,
     quote: Option<String>,
     cite: Option<String>,
     arrow: Option<ArrowInput>,
     ellipsis: Option<bool>,
     em_dash: Option<bool>,
-    em_dash_camel: Option<bool>,
     stop: Option<String>,
     hanja: Option<HanjaInput>,
 }
 
 impl ConfigurationInput {
     fn content_type(&self) -> Option<&str> {
-        self.content_type.as_deref().or(self.content_type_camel.as_deref())
+        self.content_type.as_deref()
     }
 
     fn em_dash(&self) -> Option<bool> {
-        self.em_dash.or(self.em_dash_camel)
+        self.em_dash
     }
 }
 
 #[derive(Debug)]
 struct ArrowInput {
     bidir_arrow: Option<bool>,
-    bidir_arrow_camel: Option<bool>,
     double_arrow: Option<bool>,
-    double_arrow_camel: Option<bool>,
 }
 
 impl ArrowInput {
     fn bidir_arrow(&self) -> bool {
-        self.bidir_arrow.or(self.bidir_arrow_camel).unwrap_or(false)
+        self.bidir_arrow.unwrap_or(false)
     }
 
     fn double_arrow(&self) -> bool {
-        self.double_arrow.or(self.double_arrow_camel).unwrap_or(false)
+        self.double_arrow.unwrap_or(false)
     }
 }
 
@@ -64,15 +60,13 @@ struct HanjaInput {
 #[derive(Debug)]
 struct HanjaReadingInput {
     initial_sound_law: Option<bool>,
-    initial_sound_law_camel: Option<bool>,
     dictionary: Option<BTreeMap<String, String>>,
     use_dictionaries: Option<Vec<String>>,
-    use_dictionaries_camel: Option<Vec<String>>,
 }
 
 impl HanjaReadingInput {
     fn initial_sound_law(&self) -> bool {
-        self.initial_sound_law.or(self.initial_sound_law_camel).unwrap_or(false)
+        self.initial_sound_law.unwrap_or(false)
     }
 
     fn dictionary(&self) -> BTreeMap<String, String> {
@@ -80,7 +74,7 @@ impl HanjaReadingInput {
     }
 
     fn use_dictionaries(&self) -> Vec<String> {
-        self.use_dictionaries.clone().or(self.use_dictionaries_camel.clone()).unwrap_or_default()
+        self.use_dictionaries.clone().unwrap_or_default()
     }
 }
 
@@ -133,14 +127,12 @@ fn parse_configuration_input(config: &Bound<'_, PyAny>) -> PyResult<Configuratio
     let dict = config.cast::<PyDict>()?;
     Ok(ConfigurationInput {
         content_type: optional_string(dict, "content_type")?,
-        content_type_camel: optional_string(dict, "contentType")?,
         preset: optional_string(dict, "preset")?,
         quote: optional_string(dict, "quote")?,
         cite: optional_string(dict, "cite")?,
         arrow: optional_arrow(dict)?,
         ellipsis: optional_bool(dict, "ellipsis")?,
         em_dash: optional_bool(dict, "em_dash")?,
-        em_dash_camel: optional_bool(dict, "emDash")?,
         stop: optional_string(dict, "stop")?,
         hanja: optional_hanja(dict)?,
     })
@@ -150,9 +142,7 @@ fn parse_arrow_input(value: &Bound<'_, PyAny>) -> PyResult<ArrowInput> {
     let dict = value.cast::<PyDict>()?;
     Ok(ArrowInput {
         bidir_arrow: optional_bool(dict, "bidir_arrow")?,
-        bidir_arrow_camel: optional_bool(dict, "bidirArrow")?,
         double_arrow: optional_bool(dict, "double_arrow")?,
-        double_arrow_camel: optional_bool(dict, "doubleArrow")?,
     })
 }
 
@@ -163,13 +153,9 @@ fn parse_hanja_input(value: &Bound<'_, PyAny>) -> PyResult<HanjaInput> {
 
     let reading = match dict.get_item("reading")? {
         Some(value) if !value.is_none() => parse_hanja_reading_input(&value)?,
-        _ => HanjaReadingInput {
-            initial_sound_law: None,
-            initial_sound_law_camel: None,
-            dictionary: None,
-            use_dictionaries: None,
-            use_dictionaries_camel: None,
-        },
+        _ => {
+            HanjaReadingInput { initial_sound_law: None, dictionary: None, use_dictionaries: None }
+        }
     };
 
     Ok(HanjaInput { rendering, reading })
@@ -179,10 +165,8 @@ fn parse_hanja_reading_input(value: &Bound<'_, PyAny>) -> PyResult<HanjaReadingI
     let dict = value.cast::<PyDict>()?;
     Ok(HanjaReadingInput {
         initial_sound_law: optional_bool(dict, "initial_sound_law")?,
-        initial_sound_law_camel: optional_bool(dict, "initialSoundLaw")?,
         dictionary: optional_dict(dict, "dictionary")?,
         use_dictionaries: optional_string_vec(dict, "use_dictionaries")?,
-        use_dictionaries_camel: optional_string_vec(dict, "useDictionaries")?,
     })
 }
 
