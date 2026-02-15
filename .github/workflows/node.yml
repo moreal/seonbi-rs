@@ -39,21 +39,33 @@ jobs:
         with:
           node-version: '22'
       - name: Install Linux cross-compilers
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
-          sudo apt-get install -y musl-tools gcc-aarch64-linux-gnu
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: Install Zig for musl cross-compilation
+        if: runner.os == 'Linux' && matrix.target == 'x86_64-unknown-linux-musl'
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+      - name: Install cargo-zigbuild
+        if: runner.os == 'Linux' && matrix.target == 'x86_64-unknown-linux-musl'
+        run: cargo install cargo-zigbuild --locked
       - name: Install JS dependencies
         working-directory: crates/seonbi-node
         run: npm install
       - name: Check Rust crate
         run: cargo check -p seonbi-node
-      - name: Build N-API module
+      - name: Build N-API module (default targets)
+        if: matrix.target != 'x86_64-unknown-linux-musl'
         working-directory: crates/seonbi-node
         env:
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: x86_64-linux-musl-gcc
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
         run: npx napi build --release --platform --target ${{ matrix.target }}
+      - name: Build N-API module (musl via zigbuild)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        working-directory: crates/seonbi-node
+        run: npx napi build --release --platform --target ${{ matrix.target }} --cross-compile
       - name: Run Node runtime tests
         if: matrix.run_runtime_tests
         working-directory: crates/seonbi-node
@@ -95,4 +107,4 @@ jobs:
         working-directory: crates/seonbi-node
         run: npx napi build --release --platform
       - name: Run Deno runtime smoke test
-        run: deno run -A --node-modules-dir=auto crates/seonbi-node/__tests__/runtime-smoke.mjs
+        run: deno run -A --unstable-detect-cjs --node-modules-dir=auto crates/seonbi-node/__tests__/runtime-smoke.mjs

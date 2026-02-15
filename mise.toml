@@ -28,7 +28,7 @@ run = "bun run crates/seonbi-node/__tests__/runtime-smoke.mjs"
 [tasks.test-deno]
 description = "Run Deno runtime smoke test"
 depends = ["node-build"]
-run = "deno run -A --node-modules-dir=auto crates/seonbi-node/__tests__/runtime-smoke.mjs"
+run = "deno run -A --unstable-detect-cjs --node-modules-dir=auto crates/seonbi-node/__tests__/runtime-smoke.mjs"
 
 [tasks.wasm-build]
 description = "Build wasm package"
