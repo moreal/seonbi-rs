@@ -16,6 +16,22 @@ This repository now includes multi-language bindings around `crates/seonbi`:
 - WASM: `wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi`
 - Python: `maturin build --release --manifest-path crates/seonbi-python/Cargo.toml`
 
+### Git Hooks
+
+This repository provides a pre-commit hook at `hooks/pre-commit`.
+
+Install it once per clone:
+
+```bash
+git config core.hooksPath hooks
+```
+
+The hook runs:
+
+- `cargo build`
+- `cargo fmt --all -- --check`
+- `cargo clippy --workspace --all-targets`
+
 ### Dictionary Embedding
 
 `crates/seonbi` enables `freeze-dict` by default. This embeds `ko-kr-stdict.tsv`
