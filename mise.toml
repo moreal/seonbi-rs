@@ -1,0 +1,53 @@
+[tools]
+node = "22.22.0"
+deno = "2.6.9"
+bun = "1.3.9"
+
+[tasks.node-deps]
+description = "Install Node binding dependencies"
+run = "cd crates/seonbi-node && npm install"
+
+[tasks.node-build]
+description = "Build host N-API module for Node bindings"
+depends = ["node-deps"]
+run = [
+  "cargo check -p seonbi-node",
+  "cd crates/seonbi-node && npx napi build --release --platform",
+]
+
+[tasks.test-node]
+description = "Run Node runtime tests"
+depends = ["node-build"]
+run = "node --test crates/seonbi-node/__tests__/index.spec.mjs"
+
+[tasks.test-bun]
+description = "Run Bun runtime smoke test"
+depends = ["node-build"]
+run = "bun run crates/seonbi-node/__tests__/runtime-smoke.mjs"
+
+[tasks.test-deno]
+description = "Run Deno runtime smoke test"
+depends = ["node-build"]
+run = "deno run -A --node-modules-dir=auto crates/seonbi-node/__tests__/runtime-smoke.mjs"
+
+[tasks.wasm-build]
+description = "Build wasm package"
+run = "wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi"
+
+[tasks.test-wasm]
+description = "Run wasm build and tests (headless Chrome)"
+run = [
+  "wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi",
+  "cargo test -p seonbi-wasm",
+  "wasm-pack test crates/seonbi-wasm --headless --chrome",
+]
+
+[tasks.test-js-all]
+description = "Run all JS runtime tests (Node, Bun, Deno)"
+depends = ["test-node", "test-bun", "test-deno"]
+run = "echo JS runtime tests completed"
+
+[tasks.test-bindings-all]
+description = "Run all local binding tests (JS runtimes + wasm)"
+depends = ["test-js-all", "test-wasm"]
+run = "echo All binding tests completed"
