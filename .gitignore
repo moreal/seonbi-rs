@@ -4,6 +4,9 @@
 crates/seonbi-node/node_modules/
 crates/seonbi-node/*.node
 crates/seonbi-node/index.d.ts
+crates/seonbi-node/index.js
+crates/seonbi-node/package-lock.json
+crates/seonbi-node/deno.lock
 crates/seonbi-wasm/pkg/
 crates/seonbi-python/.venv/
 crates/seonbi-python/dist/
