@@ -21,4 +21,4 @@ jobs:
       - name: Run Rust unit tests
         run: cargo test -p seonbi-wasm
       - name: Run browser wasm tests
-        run: wasm-pack test crates/seonbi-wasm --headless --chrome
+        run: wasm-pack test --headless --chrome crates/seonbi-wasm

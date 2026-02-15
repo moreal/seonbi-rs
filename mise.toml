@@ -40,7 +40,7 @@ description = "Run wasm build and tests (headless Chrome)"
 run = [
   "wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi",
   "cargo test -p seonbi-wasm",
-  "wasm-pack test crates/seonbi-wasm --headless --chrome",
+  "wasm-pack test --headless --chrome crates/seonbi-wasm",
 ]
 
 [tasks.python-deps]
