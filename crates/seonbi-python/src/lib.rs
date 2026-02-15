@@ -12,29 +12,18 @@ use seonbi::{
     supported_content_types, transform_html_text,
 };
 
-#[derive(Debug, FromPyObject)]
+#[derive(Debug)]
 struct ConfigurationInput {
-    #[pyo3(item("content_type"))]
     content_type: Option<String>,
-    #[pyo3(item("contentType"))]
     content_type_camel: Option<String>,
-    #[pyo3(item("preset"))]
     preset: Option<String>,
-    #[pyo3(item("quote"))]
     quote: Option<String>,
-    #[pyo3(item("cite"))]
     cite: Option<String>,
-    #[pyo3(item("arrow"))]
     arrow: Option<ArrowInput>,
-    #[pyo3(item("ellipsis"))]
     ellipsis: Option<bool>,
-    #[pyo3(item("em_dash"))]
     em_dash: Option<bool>,
-    #[pyo3(item("emDash"))]
     em_dash_camel: Option<bool>,
-    #[pyo3(item("stop"))]
     stop: Option<String>,
-    #[pyo3(item("hanja"))]
     hanja: Option<HanjaInput>,
 }
 
@@ -48,15 +37,11 @@ impl ConfigurationInput {
     }
 }
 
-#[derive(Debug, FromPyObject)]
+#[derive(Debug)]
 struct ArrowInput {
-    #[pyo3(item("bidir_arrow"))]
     bidir_arrow: Option<bool>,
-    #[pyo3(item("bidirArrow"))]
     bidir_arrow_camel: Option<bool>,
-    #[pyo3(item("double_arrow"))]
     double_arrow: Option<bool>,
-    #[pyo3(item("doubleArrow"))]
     double_arrow_camel: Option<bool>,
 }
 
@@ -70,25 +55,18 @@ impl ArrowInput {
     }
 }
 
-#[derive(Debug, FromPyObject)]
+#[derive(Debug)]
 struct HanjaInput {
-    #[pyo3(item("rendering"))]
     rendering: String,
-    #[pyo3(item("reading"))]
     reading: HanjaReadingInput,
 }
 
-#[derive(Debug, FromPyObject)]
+#[derive(Debug)]
 struct HanjaReadingInput {
-    #[pyo3(item("initial_sound_law"))]
     initial_sound_law: Option<bool>,
-    #[pyo3(item("initialSoundLaw"))]
     initial_sound_law_camel: Option<bool>,
-    #[pyo3(item("dictionary"))]
     dictionary: Option<BTreeMap<String, String>>,
-    #[pyo3(item("use_dictionaries"))]
     use_dictionaries: Option<Vec<String>>,
-    #[pyo3(item("useDictionaries"))]
     use_dictionaries_camel: Option<Vec<String>>,
 }
 
@@ -106,9 +84,111 @@ impl HanjaReadingInput {
     }
 }
 
+fn optional_string(dict: &Bound<'_, PyDict>, key: &str) -> PyResult<Option<String>> {
+    match dict.get_item(key)? {
+        Some(value) if !value.is_none() => value.extract().map(Some),
+        _ => Ok(None),
+    }
+}
+
+fn optional_bool(dict: &Bound<'_, PyDict>, key: &str) -> PyResult<Option<bool>> {
+    match dict.get_item(key)? {
+        Some(value) if !value.is_none() => value.extract().map(Some),
+        _ => Ok(None),
+    }
+}
+
+fn optional_dict(
+    dict: &Bound<'_, PyDict>,
+    key: &str,
+) -> PyResult<Option<BTreeMap<String, String>>> {
+    match dict.get_item(key)? {
+        Some(value) if !value.is_none() => value.extract().map(Some),
+        _ => Ok(None),
+    }
+}
+
+fn optional_string_vec(dict: &Bound<'_, PyDict>, key: &str) -> PyResult<Option<Vec<String>>> {
+    match dict.get_item(key)? {
+        Some(value) if !value.is_none() => value.extract().map(Some),
+        _ => Ok(None),
+    }
+}
+
+fn optional_arrow(dict: &Bound<'_, PyDict>) -> PyResult<Option<ArrowInput>> {
+    match dict.get_item("arrow")? {
+        Some(value) if !value.is_none() => parse_arrow_input(&value).map(Some),
+        _ => Ok(None),
+    }
+}
+
+fn optional_hanja(dict: &Bound<'_, PyDict>) -> PyResult<Option<HanjaInput>> {
+    match dict.get_item("hanja")? {
+        Some(value) if !value.is_none() => parse_hanja_input(&value).map(Some),
+        _ => Ok(None),
+    }
+}
+
+fn parse_configuration_input(config: &Bound<'_, PyAny>) -> PyResult<ConfigurationInput> {
+    let dict = config.cast::<PyDict>()?;
+    Ok(ConfigurationInput {
+        content_type: optional_string(dict, "content_type")?,
+        content_type_camel: optional_string(dict, "contentType")?,
+        preset: optional_string(dict, "preset")?,
+        quote: optional_string(dict, "quote")?,
+        cite: optional_string(dict, "cite")?,
+        arrow: optional_arrow(dict)?,
+        ellipsis: optional_bool(dict, "ellipsis")?,
+        em_dash: optional_bool(dict, "em_dash")?,
+        em_dash_camel: optional_bool(dict, "emDash")?,
+        stop: optional_string(dict, "stop")?,
+        hanja: optional_hanja(dict)?,
+    })
+}
+
+fn parse_arrow_input(value: &Bound<'_, PyAny>) -> PyResult<ArrowInput> {
+    let dict = value.cast::<PyDict>()?;
+    Ok(ArrowInput {
+        bidir_arrow: optional_bool(dict, "bidir_arrow")?,
+        bidir_arrow_camel: optional_bool(dict, "bidirArrow")?,
+        double_arrow: optional_bool(dict, "double_arrow")?,
+        double_arrow_camel: optional_bool(dict, "doubleArrow")?,
+    })
+}
+
+fn parse_hanja_input(value: &Bound<'_, PyAny>) -> PyResult<HanjaInput> {
+    let dict = value.cast::<PyDict>()?;
+    let rendering = optional_string(dict, "rendering")?
+        .ok_or_else(|| PyValueError::new_err("hanja.rendering is required"))?;
+
+    let reading = match dict.get_item("reading")? {
+        Some(value) if !value.is_none() => parse_hanja_reading_input(&value)?,
+        _ => HanjaReadingInput {
+            initial_sound_law: None,
+            initial_sound_law_camel: None,
+            dictionary: None,
+            use_dictionaries: None,
+            use_dictionaries_camel: None,
+        },
+    };
+
+    Ok(HanjaInput { rendering, reading })
+}
+
+fn parse_hanja_reading_input(value: &Bound<'_, PyAny>) -> PyResult<HanjaReadingInput> {
+    let dict = value.cast::<PyDict>()?;
+    Ok(HanjaReadingInput {
+        initial_sound_law: optional_bool(dict, "initial_sound_law")?,
+        initial_sound_law_camel: optional_bool(dict, "initialSoundLaw")?,
+        dictionary: optional_dict(dict, "dictionary")?,
+        use_dictionaries: optional_string_vec(dict, "use_dictionaries")?,
+        use_dictionaries_camel: optional_string_vec(dict, "useDictionaries")?,
+    })
+}
+
 #[pyfunction]
 fn transform(config: &Bound<'_, PyAny>, input: &str) -> PyResult<String> {
-    let config_input: ConfigurationInput = config.extract()?;
+    let config_input = parse_configuration_input(config)?;
     let internal = to_internal_config(config_input)?;
     transform_html_text(&internal, input).map_err(|e| PyValueError::new_err(e.to_string()))
 }
