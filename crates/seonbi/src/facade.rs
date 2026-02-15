@@ -1,8 +1,6 @@
 use std::collections::BTreeMap;
-use std::sync::Arc;
-
-#[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
+use std::sync::Arc;
 
 use crate::content_types::{
     ContentType, ContentTypeError, content_type_from_text, content_type_text, content_types,
