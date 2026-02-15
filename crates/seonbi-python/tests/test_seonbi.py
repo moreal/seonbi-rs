@@ -39,6 +39,39 @@ def test_ko_kr_output_differs_by_content_type() -> None:
     assert "&ldquo;" not in markdown_output
 
 
+@pytest.mark.parametrize(
+    ("quote", "content_type", "input_text", "expected"),
+    [
+        (QuoteOption.CurvedQuotes, "text/html", "<p>\"abc\"</p>", "<p>&ldquo;abc&rdquo;</p>"),
+        (
+            QuoteOption.CurvedQuotes,
+            "application/xhtml+xml",
+            "<p>\"abc\"</p>",
+            "<p>&ldquo;abc&rdquo;</p>",
+        ),
+        (QuoteOption.CurvedQuotes, "text/markdown", "\"abc\"", "“abc”\n"),
+        (QuoteOption.CurvedQuotes, "text/plain", "\"abc\"", "“abc”"),
+        (QuoteOption.Guillemets, "text/html", "<p>\"abc\"</p>", "<p>&#x300a;abc&#x300b;</p>"),
+        (
+            QuoteOption.Guillemets,
+            "application/xhtml+xml",
+            "<p>\"abc\"</p>",
+            "<p>&#x300a;abc&#x300b;</p>",
+        ),
+        (QuoteOption.Guillemets, "text/markdown", "\"abc\"", "《abc》\n"),
+        (QuoteOption.Guillemets, "text/plain", "\"abc\"", "《abc》"),
+    ],
+)
+def test_quote_content_type_matrix(
+    quote: QuoteOption, content_type: str, input_text: str, expected: str
+) -> None:
+    config = ko_kr()
+    config.quote = quote
+    config.content_type = content_type
+    output = transform(config, input_text)
+    assert output == expected
+
+
 def test_invalid_content_type_raises_value_error() -> None:
     config = Configuration(content_type="invalid/type")
     with pytest.raises(ValueError, match="Invalid content type"):
