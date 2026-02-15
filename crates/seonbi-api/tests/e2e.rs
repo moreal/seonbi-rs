@@ -307,6 +307,20 @@ fn post_with_preset_returns_transformed_content() {
 }
 
 #[test]
+fn post_with_markdown_content_type_returns_markdown_output() {
+    let server = RunningServer::spawn(&[]);
+    let body = r#"{"content":"\"abc\"","preset":"ko-kr","contentType":"text/markdown"}"#;
+    let res = send_http(server.port, "POST", "/", Some(body), &[]).expect("request");
+
+    assert_eq!(res.status, 200);
+    let parsed = parse_json_body(&res.body);
+    assert_eq!(parsed["success"], true);
+    assert_eq!(parsed["contentType"], "text/markdown");
+    assert_eq!(parsed["content"], "“abc”\n");
+    assert!(parsed.get("resultHtml").is_none());
+}
+
+#[test]
 fn post_deprecated_keys_return_warnings() {
     let server = RunningServer::spawn(&[]);
 
@@ -414,6 +428,20 @@ fn compares_with_original_when_configured() {
             method: "POST",
             target: "/",
             body: Some(r#"{"content":"<p>漢字</p>","preset":"ko-kr"}"#),
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "post quote at text end",
+            method: "POST",
+            target: "/",
+            body: Some(r#"{"content":"<p>\"abc\"</p>","preset":"ko-kr"}"#),
+            comparison: BodyComparison::ExactJson,
+        },
+        ApiCompareCase {
+            name: "post markdown preset ko-kr",
+            method: "POST",
+            target: "/",
+            body: Some(r#"{"content":"\"abc\"","preset":"ko-kr","contentType":"text/markdown"}"#),
             comparison: BodyComparison::ExactJson,
         },
         ApiCompareCase {

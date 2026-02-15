@@ -24,7 +24,19 @@ def test_transform_smoke() -> None:
 def test_preset_allows_overrides() -> None:
     config = Configuration(preset="ko-kr", quote=QuoteOption.Guillemets)
     output = transform(config, "<p>\"abc\"</p>")
-    assert "«abc»" in output
+    assert "&#x300a;abc&#x300b;" in output
+
+
+def test_ko_kr_output_differs_by_content_type() -> None:
+    html_config = ko_kr()
+    html_output = transform(html_config, "<p>\"abc\"</p>")
+    assert "&ldquo;abc&rdquo;" in html_output
+
+    markdown_config = ko_kr()
+    markdown_config.content_type = "text/markdown"
+    markdown_output = transform(markdown_config, "\"abc\"")
+    assert "“abc”" in markdown_output
+    assert "&ldquo;" not in markdown_output
 
 
 def test_invalid_content_type_raises_value_error() -> None:
