@@ -67,4 +67,5 @@ jobs:
       - uses: PyO3/maturin-action@v1
         with:
           command: publish
+          python-version: '3.14'
           args: --release --manifest-path crates/seonbi-python/Cargo.toml
