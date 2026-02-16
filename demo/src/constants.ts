@@ -50,6 +50,7 @@ export const DEFAULT_CUSTOM_OPTIONS: CustomOptions = {
     reading: {
       initialSoundLaw: true,
       useDictionaries: new Set(["kr-stdict"]),
+      dictionary: {},
     },
   },
 };

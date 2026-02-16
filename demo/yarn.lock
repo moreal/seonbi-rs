@@ -780,8 +780,8 @@ __metadata:
 
 "@seonbi/seonbi-wasm@file:../crates/seonbi-wasm/pkg::locator=seonbi-demo%40workspace%3A.":
   version: 0.1.0
-  resolution: "@seonbi/seonbi-wasm@file:../crates/seonbi-wasm/pkg#../crates/seonbi-wasm/pkg::hash=48fa74&locator=seonbi-demo%40workspace%3A."
-  checksum: 10c0/baeda577d704bd47f51c4ffded7fa667b0df4b69a0d76437d9629676b7497f51a6d58ed5fb1a7b3e5ef0ad5e849f0a497fb06f5cd4ec7adb8fa73e1eb593ef83
+  resolution: "@seonbi/seonbi-wasm@file:../crates/seonbi-wasm/pkg#../crates/seonbi-wasm/pkg::hash=698ec9&locator=seonbi-demo%40workspace%3A."
+  checksum: 10c0/10086f5cf9ff66f4ce4b3cfa787f803c3202ceab4f0f803290946979c2795f3ba3373387b9483db59e607d858123d0db9eaf839f7a27c1ee3143bf543493b88d
   languageName: node
   linkType: hard
 

@@ -1,4 +1,5 @@
-import { Form, Row, Col, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Form, Row, Col, Button } from "react-bootstrap";
+import { CustomDictionaryModal } from "./CustomDictionaryModal";
 import type {
   AppState,
   Action,
@@ -103,6 +104,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
           reading: opts.hanja?.reading ?? {
             initialSoundLaw: true,
             useDictionaries: new Set<string>(),
+            dictionary: {},
           },
         },
       });
@@ -309,23 +311,15 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
           </Form.Select>
         </Col>
         <Col sm={2}>
-          <OverlayTrigger
-            overlay={
-              <Tooltip>Custom dictionary is not yet supported in the WASM build</Tooltip>
-            }
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            className="p-2"
+            disabled={!hanjaActive}
+            onClick={() => dispatch({ type: "SHOW_CUSTOM_DICTIONARY" })}
           >
-            <span className="d-inline-block">
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                className="p-2"
-                disabled
-                style={{ pointerEvents: "none" }}
-              >
-                Custom dictionary (0)
-              </Button>
-            </span>
-          </OverlayTrigger>
+            Custom dictionary ({Object.keys(state.customDictionary).length})
+          </Button>
         </Col>
         <Col sm={5} className="mt-2">
           <Form.Check
@@ -408,6 +402,12 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
           </Form.Select>
         </Col>
       </Row>
+      <CustomDictionaryModal
+        show={state.customDictionaryModalOpen}
+        source={state.customDictionarySource}
+        entryCount={Object.keys(state.customDictionary).length}
+        dispatch={dispatch}
+      />
     </Form>
   );
 }

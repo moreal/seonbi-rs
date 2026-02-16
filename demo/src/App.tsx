@@ -30,6 +30,9 @@ function createInitialState(): AppState {
     error: null,
     sourceTab: "commonmark",
     resultTab: "render",
+    customDictionarySource: "",
+    customDictionary: {},
+    customDictionaryModalOpen: false,
   };
 }
 
@@ -113,6 +116,47 @@ function reducer(state: AppState, action: Action): AppState {
         error: action.error,
       };
     }
+    case "SHOW_CUSTOM_DICTIONARY": {
+      const source = Object.entries(state.customDictionary)
+        .map(([k, v]) => `${k} \u2192 ${v}\n`)
+        .join("");
+      return {
+        ...state,
+        customDictionaryModalOpen: true,
+        customDictionarySource: source,
+      };
+    }
+    case "CLOSE_CUSTOM_DICTIONARY": {
+      return { ...state, customDictionaryModalOpen: false };
+    }
+    case "UPDATE_CUSTOM_DICTIONARY_SOURCE": {
+      const arrowPattern = / *-> */g;
+      const incompletePattern = /(^|(?:.|\n)*\n)((?:[^-\u2192\n]|-[^>\n])*)\n+$/;
+      const completePattern = /(?:^|\n)((?:[^-\u2192\n]|-[^>])+) *(?:->|\u2192) ([^\n]+)/g;
+
+      let newSource = action.source.replace(arrowPattern, " \u2192 ");
+      const incompleteMatch = incompletePattern.exec(newSource);
+      if (incompleteMatch) {
+        const prefix = incompleteMatch[1] ?? "";
+        const incomplete = incompleteMatch[2] ?? "";
+        newSource = prefix + incomplete + " \u2192 ";
+      }
+
+      const dict: Record<string, string> = {};
+      for (const match of newSource.matchAll(completePattern)) {
+        const key = match[1]?.trim();
+        const value = match[2]?.trim();
+        if (key && value) {
+          dict[key] = value;
+        }
+      }
+
+      return {
+        ...state,
+        customDictionarySource: newSource,
+        customDictionary: dict,
+      };
+    }
   }
 }
 
@@ -151,6 +195,7 @@ export function buildConfiguration(
           reading: {
             initialSoundLaw: opts.hanja.reading.initialSoundLaw,
             useDictionaries: Array.from(opts.hanja.reading.useDictionaries),
+            dictionary: new Map(Object.entries(state.customDictionary)),
           },
         }
       : undefined,
@@ -203,7 +248,7 @@ export function buildHttpRequestBody(state: AppState): object {
       reading: {
         initialSoundLaw: opts.hanja.reading.initialSoundLaw,
         useDictionaries: Array.from(opts.hanja.reading.useDictionaries),
-        dictionary: {},
+        dictionary: state.customDictionary,
       },
     };
   } else {
@@ -286,12 +331,17 @@ result = transform(config, input)`;
     const dicts = Array.from(opts.hanja.reading.useDictionaries)
       .map((d) => JSON.stringify(d))
       .join(", ");
+    const dictEntries = Object.entries(state.customDictionary);
+    const dictArg =
+      dictEntries.length > 0
+        ? `\n            dictionary={${dictEntries.map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(", ")}},`
+        : "";
     configArgs.push(
       `    hanja=HanjaOption(
         rendering=HanjaRenderingOption.${opts.hanja.rendering},
         reading=HanjaReadingOption(
             initial_sound_law=${opts.hanja.reading.initialSoundLaw ? "True" : "False"},
-            use_dictionaries=[${dicts}],
+            use_dictionaries=[${dicts}],${dictArg}
         ),
     ),`
     );
@@ -336,12 +386,16 @@ function buildExampleConfig(
   config.emDash = opts.emDash;
   if (opts.stop) config.stop = opts.stop;
   if (opts.hanja) {
+    const reading: Record<string, unknown> = {
+      initialSoundLaw: opts.hanja.reading.initialSoundLaw,
+      useDictionaries: Array.from(opts.hanja.reading.useDictionaries),
+    };
+    if (Object.keys(state.customDictionary).length > 0) {
+      reading.dictionary = state.customDictionary;
+    }
     config.hanja = {
       rendering: opts.hanja.rendering,
-      reading: {
-        initialSoundLaw: opts.hanja.reading.initialSoundLaw,
-        useDictionaries: Array.from(opts.hanja.reading.useDictionaries),
-      },
+      reading,
     };
   }
 

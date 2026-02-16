@@ -33,6 +33,7 @@ export interface ArrowOption {
 export interface HanjaReadingOption {
   initialSoundLaw: boolean;
   useDictionaries: Set<string>;
+  dictionary: Record<string, string>;
 }
 
 export interface HanjaOption {
@@ -70,6 +71,9 @@ export interface AppState {
   error: string | null;
   sourceTab: string;
   resultTab: string;
+  customDictionarySource: string;
+  customDictionary: Record<string, string>;
+  customDictionaryModalOpen: boolean;
 }
 
 export type Action =
@@ -81,4 +85,7 @@ export type Action =
   | { type: "SET_SOURCE_TAB"; tab: string }
   | { type: "SET_RESULT_TAB"; tab: string }
   | { type: "TRANSFORM_SUCCESS"; result: TransformResult; source: Source; preset: Preset; customOptions: CustomOptions | null }
-  | { type: "TRANSFORM_ERROR"; error: string };
+  | { type: "TRANSFORM_ERROR"; error: string }
+  | { type: "SHOW_CUSTOM_DICTIONARY" }
+  | { type: "CLOSE_CUSTOM_DICTIONARY" }
+  | { type: "UPDATE_CUSTOM_DICTIONARY_SOURCE"; source: string };
