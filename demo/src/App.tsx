@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from "react";
+import { useReducer, useCallback, useEffect } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import type { Configuration } from "@seonbi/seonbi-wasm";
 import { transform } from "./wasm";
@@ -448,6 +448,12 @@ export default function App() {
       dispatch({ type: "TRANSFORM_ERROR", error: String(err) });
     }
   }, [state]);
+
+  useEffect(() => {
+    if (wasmReady) {
+      handleTransform();
+    }
+  }, [wasmReady]);
 
   const sourceUnchanged = isSourceUnchanged(state);
 
