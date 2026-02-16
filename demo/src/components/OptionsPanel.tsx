@@ -150,6 +150,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
         </Form.Label>
         <Col sm={11} className="mt-2">
           <Form.Check
+            id="preset-ko-kr"
             inline
             type="radio"
             name="preset"
@@ -158,6 +159,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={() => dispatch({ type: "SET_PRESET", preset: "ko-kr" })}
           />
           <Form.Check
+            id="preset-ko-kp"
             inline
             type="radio"
             name="preset"
@@ -166,6 +168,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={() => dispatch({ type: "SET_PRESET", preset: "ko-kp" })}
           />
           <Form.Check
+            id="preset-custom"
             inline
             type="radio"
             name="preset"
@@ -183,6 +186,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
         </Form.Label>
         <Col sm={6} className="mt-2">
           <Form.Check
+            id="quote-curved"
             inline
             type="radio"
             name="quote"
@@ -192,6 +196,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={() => setQuote("CurvedQuotes")}
           />
           <Form.Check
+            id="quote-guillemets"
             inline
             type="radio"
             name="quote"
@@ -201,6 +206,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={() => setQuote("Guillemets")}
           />
           <Form.Check
+            id="quote-curved-q"
             inline
             type="radio"
             name="quote"
@@ -215,6 +221,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
         </Form.Label>
         <Col sm={4} className="mt-2">
           <Form.Check
+            id="punct-ellipsis"
             inline
             type="checkbox"
             label="Ellipsis"
@@ -223,6 +230,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={(e) => toggleEllipsis(e.target.checked)}
           />
           <Form.Check
+            id="punct-em-dash"
             inline
             type="checkbox"
             label="Em dash"
@@ -240,6 +248,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
         </Form.Label>
         <Col sm={6} className="mt-2">
           <Form.Check
+            id="arrow-toggle"
             inline
             type="checkbox"
             label="Arrow"
@@ -248,6 +257,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={(e) => toggleArrow(e.target.checked)}
           />
           <Form.Check
+            id="arrow-bidir"
             inline
             type="checkbox"
             label="Bidirection"
@@ -256,6 +266,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={(e) => toggleBidir(e.target.checked)}
           />
           <Form.Check
+            id="arrow-double"
             inline
             type="checkbox"
             label="Double"
@@ -323,6 +334,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
         </Col>
         <Col sm={5} className="mt-2">
           <Form.Check
+            id="hanja-isl"
             inline
             type="checkbox"
             label="Initial Sound Law"
@@ -331,6 +343,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={(e) => toggleISL(e.target.checked)}
           />
           <Form.Check
+            id="hanja-kr-stdict"
             inline
             type="checkbox"
             label="South Korean Standard Dictionary"
@@ -351,6 +364,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
         </Form.Label>
         <Col sm={6} className="mt-2">
           <Form.Check
+            id="stop-horizontal"
             inline
             type="radio"
             name="stop"
@@ -360,6 +374,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={() => setStop("Horizontal")}
           />
           <Form.Check
+            id="stop-horizontal-slashes"
             inline
             type="radio"
             name="stop"
@@ -369,6 +384,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={() => setStop("HorizontalWithSlashes")}
           />
           <Form.Check
+            id="stop-vertical"
             inline
             type="radio"
             name="stop"
@@ -378,6 +394,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             onChange={() => setStop("Vertical")}
           />
           <Form.Check
+            id="stop-as-is"
             inline
             type="radio"
             name="stop"
