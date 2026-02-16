@@ -778,9 +778,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@seonbi/seonbi-wasm@portal:../crates/seonbi-wasm/pkg::locator=seonbi-demo%40workspace%3A.":
+"@seonbi/wasm@portal:../crates/wasm/pkg::locator=seonbi-demo%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@seonbi/seonbi-wasm@portal:../crates/seonbi-wasm/pkg::locator=seonbi-demo%40workspace%3A."
+  resolution: "@seonbi/wasm@portal:../crates/wasm/pkg::locator=seonbi-demo%40workspace%3A."
   languageName: node
   linkType: soft
 
@@ -2272,7 +2272,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "seonbi-demo@workspace:."
   dependencies:
-    "@seonbi/seonbi-wasm": "portal:../crates/seonbi-wasm/pkg"
+    "@seonbi/wasm": "portal:../crates/wasm/pkg"
     "@types/react": "npm:^19.0.8"
     "@types/react-dom": "npm:^19.0.3"
     "@vitejs/plugin-react": "npm:^4.3.4"

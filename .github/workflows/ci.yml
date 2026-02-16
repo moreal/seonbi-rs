@@ -17,7 +17,7 @@ jobs:
       - name: cargo fmt
         run: cargo fmt --all -- --check
       - name: cargo clippy
-        run: cargo clippy --workspace --all-targets --exclude seonbi-node --exclude seonbi-wasm --exclude seonbi-python
+        run: cargo clippy --workspace --all-targets --exclude node --exclude wasm --exclude python
 
   test:
     runs-on: ubuntu-latest
@@ -25,4 +25,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: cargo test
-        run: cargo test --workspace --exclude seonbi-node --exclude seonbi-wasm --exclude seonbi-python
+        run: cargo test --workspace --exclude node --exclude wasm --exclude python

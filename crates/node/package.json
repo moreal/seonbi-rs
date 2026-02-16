@@ -1,5 +1,5 @@
 {
-  "name": "@seonbi/seonbi",
+  "name": "@seonbi/node",
   "version": "0.1.0",
   "description": "Node.js bindings for seonbi-rs",
   "license": "LGPL-2.1",
@@ -12,7 +12,7 @@
     "npm"
   ],
   "napi": {
-    "name": "seonbi",
+    "binaryName": "seonbi",
     "triples": {
       "defaults": true
     }
@@ -24,12 +24,12 @@
     "prepublishOnly": "napi prepublish -t npm"
   },
   "optionalDependencies": {
-    "@seonbi/seonbi-darwin-arm64": "0.1.0",
-    "@seonbi/seonbi-darwin-x64": "0.1.0",
-    "@seonbi/seonbi-linux-arm64-gnu": "0.1.0",
-    "@seonbi/seonbi-linux-x64-gnu": "0.1.0",
-    "@seonbi/seonbi-linux-x64-musl": "0.1.0",
-    "@seonbi/seonbi-win32-x64-msvc": "0.1.0"
+    "@seonbi/node-darwin-arm64": "0.1.0",
+    "@seonbi/node-darwin-x64": "0.1.0",
+    "@seonbi/node-linux-arm64-gnu": "0.1.0",
+    "@seonbi/node-linux-x64-gnu": "0.1.0",
+    "@seonbi/node-linux-x64-musl": "0.1.0",
+    "@seonbi/node-win32-x64-msvc": "0.1.0"
   },
   "publishConfig": {
     "access": "public"

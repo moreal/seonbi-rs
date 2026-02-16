@@ -52,23 +52,23 @@ jobs:
         if: runner.os == 'Linux' && matrix.target == 'x86_64-unknown-linux-musl'
         run: cargo install cargo-zigbuild --locked
       - name: Install JS dependencies
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npm install
       - name: Check Rust crate
-        run: cargo check -p seonbi-node
+        run: cargo check -p node
       - name: Build N-API module (default targets)
         if: matrix.target != 'x86_64-unknown-linux-musl'
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
         run: npx napi build --release --platform --target ${{ matrix.target }}
       - name: Build N-API module (musl via zigbuild)
         if: matrix.target == 'x86_64-unknown-linux-musl'
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npx napi build --release --platform --target ${{ matrix.target }} --cross-compile
       - name: Run Node runtime tests
         if: matrix.run_runtime_tests
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: node --test __tests__/index.spec.mjs
 
   test-bun:
@@ -81,13 +81,13 @@ jobs:
           node-version: '22'
       - uses: oven-sh/setup-bun@v2
       - name: Install JS dependencies
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npm install
       - name: Build host N-API module
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npx napi build --release --platform
       - name: Run Bun runtime smoke test
-        run: bun run crates/seonbi-node/__tests__/runtime-smoke.mjs
+        run: bun run crates/node/__tests__/runtime-smoke.mjs
 
   test-deno:
     runs-on: ubuntu-latest
@@ -101,10 +101,10 @@ jobs:
         with:
           deno-version: v2.x
       - name: Install JS dependencies
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npm install
       - name: Build host N-API module
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npx napi build --release --platform
       - name: Run Deno runtime smoke test
-        run: deno run -A --unstable-detect-cjs --node-modules-dir=auto crates/seonbi-node/__tests__/runtime-smoke.mjs
+        run: deno run -A --unstable-detect-cjs --node-modules-dir=auto crates/node/__tests__/runtime-smoke.mjs

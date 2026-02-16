@@ -17,8 +17,8 @@ jobs:
       - name: Install wasm-pack
         run: cargo install wasm-pack
       - name: Build wasm package
-        run: wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi
+        run: wasm-pack build crates/wasm --release --target web --scope seonbi
       - name: Run Rust unit tests
-        run: cargo test -p seonbi-wasm
+        run: cargo test -p wasm
       - name: Run browser wasm tests
-        run: wasm-pack test --headless --chrome crates/seonbi-wasm
+        run: wasm-pack test --headless --chrome crates/wasm

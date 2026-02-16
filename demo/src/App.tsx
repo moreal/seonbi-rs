@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useEffect } from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import type { Configuration } from "@seonbi/seonbi-wasm";
+import type { Configuration } from "@seonbi/wasm";
 import { transform } from "./wasm";
 import { useWasm } from "./hooks/useWasm";
 import { useShiki } from "./hooks/useShiki";
@@ -262,7 +262,7 @@ export function buildHttpRequestBody(state: AppState): object {
 
 export function buildWasmExample(state: AppState): string {
   const config = buildExampleConfig(state, "wasm");
-  return `import init, { transform } from "@seonbi/seonbi-wasm";
+  return `import init, { transform } from "@seonbi/wasm";
 
 await init();
 const result = transform(${config}, input);`;
@@ -270,7 +270,7 @@ const result = transform(${config}, input);`;
 
 export function buildNodeExample(state: AppState): string {
   const config = buildExampleConfig(state, "node");
-  return `import { transform } from "@seonbi/seonbi-node";
+  return `import { transform } from "@seonbi/node";
 
 const result = transform(${config}, input);`;
 }

@@ -10,15 +10,15 @@ Rust port of `seonbi`.
 
 This repository now includes multi-language bindings around `crates/seonbi`:
 
-- `crates/seonbi-node`: Node.js / Deno / Bun binding via `napi-rs`
-- `crates/seonbi-wasm`: browser/Web bundler binding via `wasm-bindgen`
-- `crates/seonbi-python`: Python binding via `PyO3` + `maturin`
+- `crates/node`: Node.js / Deno / Bun binding via `napi-rs`
+- `crates/wasm`: browser/Web bundler binding via `wasm-bindgen`
+- `crates/python`: Python binding via `PyO3` + `maturin`
 
 ### Build Commands
 
-- Node: `cd crates/seonbi-node && npm install && npx napi build --release --platform`
-- WASM: `wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi`
-- Python: `maturin build --release --manifest-path crates/seonbi-python/Cargo.toml --out crates/seonbi-python/dist`
+- Node: `cd crates/node && npm install && npx napi build --release --platform`
+- WASM: `wasm-pack build crates/wasm --release --target web --scope seonbi`
+- Python: `maturin build --release --manifest-path crates/python/Cargo.toml --out crates/python/dist`
 
 ### Git Hooks
 

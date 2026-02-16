@@ -21,16 +21,16 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npm install
       - name: Build Node artifact
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npx napi build --release --platform
       - name: Prepare npm packages
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npx napi prepublish -t npm
       - name: Publish npm package
-        working-directory: crates/seonbi-node
+        working-directory: crates/node
         run: npm publish --access public
 
   publish-wasm:
@@ -51,9 +51,9 @@ jobs:
       - name: Install wasm-pack
         run: cargo install wasm-pack
       - name: Build wasm package
-        run: wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi
+        run: wasm-pack build crates/wasm --release --target web --scope seonbi
       - name: Publish wasm package
-        run: wasm-pack publish crates/seonbi-wasm --access public
+        run: wasm-pack publish crates/wasm --access public
 
   publish-python:
     runs-on: ubuntu-latest
@@ -68,4 +68,4 @@ jobs:
         with:
           command: publish
           python-version: '3.14'
-          args: --release --manifest-path crates/seonbi-python/Cargo.toml
+          args: --release --manifest-path crates/python/Cargo.toml

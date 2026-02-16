@@ -3,9 +3,9 @@ members = [
     "crates/seonbi",
     "crates/seonbi-cli",
     "crates/seonbi-api",
-    "crates/seonbi-node",
-    "crates/seonbi-wasm",
-    "crates/seonbi-python",
+    "crates/node",
+    "crates/wasm",
+    "crates/python",
 ]
 resolver = "2"
 

@@ -10,7 +10,7 @@
     "lint": "npx oxlint src/"
   },
   "dependencies": {
-    "@seonbi/seonbi-wasm": "portal:../crates/seonbi-wasm/pkg",
+    "@seonbi/wasm": "portal:../crates/wasm/pkg",
     "bootstrap": "^5.3.3",
     "html-react-parser": "^5.2.4",
     "marked": "^15.0.7",

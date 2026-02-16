@@ -2,8 +2,8 @@ import wasmInit, {
   transform as wasmTransform,
   koKr as wasmKoKr,
   koKp as wasmKoKp,
-} from "@seonbi/seonbi-wasm";
-import type { Configuration } from "@seonbi/seonbi-wasm";
+} from "@seonbi/wasm";
+import type { Configuration } from "@seonbi/wasm";
 
 let initialized = false;
 

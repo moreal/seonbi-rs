@@ -7,13 +7,13 @@ export default defineConfig({
   base: "/seonbi-rs/",
   plugins: [react(), wasm()],
   optimizeDeps: {
-    exclude: ["@seonbi/seonbi-wasm"],
+    exclude: ["@seonbi/wasm"],
   },
   server: {
     fs: {
       allow: [
         __dirname,
-        path.resolve(__dirname, "../crates/seonbi-wasm/pkg"),
+        path.resolve(__dirname, "../crates/wasm/pkg"),
       ],
     },
   },

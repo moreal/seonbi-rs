@@ -11,41 +11,41 @@ SEONBI_ORIGINAL_API_URL = "http://127.0.0.1:3800"
 
 [tasks.node-deps]
 description = "Install Node binding dependencies"
-run = "cd crates/seonbi-node && npm install"
+run = "cd crates/node && npm install"
 
 [tasks.node-build]
 description = "Build host N-API module for Node bindings"
 depends = ["node-deps"]
 run = [
-  "cargo check -p seonbi-node",
-  "cd crates/seonbi-node && npx napi build --release --platform",
+  "cargo check -p node",
+  "cd crates/node && npx napi build --release --platform",
 ]
 
 [tasks.test-node]
 description = "Run Node runtime tests"
 depends = ["node-build"]
-run = "node --test crates/seonbi-node/__tests__/index.spec.mjs"
+run = "node --test crates/node/__tests__/index.spec.mjs"
 
 [tasks.test-bun]
 description = "Run Bun runtime smoke test"
 depends = ["node-build"]
-run = "bun run crates/seonbi-node/__tests__/runtime-smoke.mjs"
+run = "bun run crates/node/__tests__/runtime-smoke.mjs"
 
 [tasks.test-deno]
 description = "Run Deno runtime smoke test"
 depends = ["node-build"]
-run = "deno run -A --unstable-detect-cjs --node-modules-dir=auto crates/seonbi-node/__tests__/runtime-smoke.mjs"
+run = "deno run -A --unstable-detect-cjs --node-modules-dir=auto crates/node/__tests__/runtime-smoke.mjs"
 
 [tasks.wasm-build]
 description = "Build wasm package"
-run = "wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi"
+run = "wasm-pack build crates/wasm --release --target web --scope seonbi"
 
 [tasks.test-wasm]
 description = "Run wasm build and tests (headless Chrome)"
 run = [
-  "wasm-pack build crates/seonbi-wasm --release --target web --scope seonbi",
-  "cargo test -p seonbi-wasm",
-  "wasm-pack test --headless --chrome crates/seonbi-wasm",
+  "wasm-pack build crates/wasm --release --target web --scope seonbi",
+  "cargo test -p wasm",
+  "wasm-pack test --headless --chrome crates/wasm",
 ]
 
 [tasks.python-deps]
@@ -55,16 +55,16 @@ run = "python -m pip install --upgrade pip maturin pytest"
 [tasks.python-build]
 description = "Build Python wheel for local testing"
 depends = ["python-deps"]
-run = "maturin build --release --manifest-path crates/seonbi-python/Cargo.toml --out crates/seonbi-python/dist"
+run = "maturin build --release --manifest-path crates/python/Cargo.toml --out crates/python/dist"
 
 [tasks.test-python]
 description = "Run Python binding tests"
 depends = ["python-build"]
 run = """
 set -euo pipefail
-wheel="$(ls -t crates/seonbi-python/dist/seonbi-*.whl | head -n1)"
+wheel="$(ls -t crates/python/dist/seonbi-*.whl | head -n1)"
 python -m pip install --force-reinstall "$wheel"
-pytest crates/seonbi-python/tests
+pytest crates/python/tests
 """
 
 [tasks.test-js-all]
