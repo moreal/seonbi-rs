@@ -1,4 +1,5 @@
 import { Tab, Tabs, Form } from "react-bootstrap";
+import type { HighlighterCore } from "shiki/core";
 import type { AppState, Action } from "../types";
 import { buildHttpRequestBody, buildWasmExample, buildNodeExample, buildPythonExample } from "../App";
 import { CodeExampleTab } from "./CodeExampleTab";
@@ -6,6 +7,7 @@ import { CodeExampleTab } from "./CodeExampleTab";
 interface SourcePanelProps {
   state: AppState;
   dispatch: React.Dispatch<Action>;
+  highlighter: HighlighterCore | null;
 }
 
 const TAB_PANE_STYLE: React.CSSProperties = {
@@ -21,7 +23,7 @@ function buildHttpRequestText(state: AppState): string {
   return `POST / HTTP/1.1\nHost: localhost:3800\nContent-Type: application/json\n\n${json}`;
 }
 
-export function SourcePanel({ state, dispatch }: SourcePanelProps) {
+export function SourcePanel({ state, dispatch, highlighter }: SourcePanelProps) {
   const isHtml =
     state.source.contentType === "text/html" ||
     state.source.contentType === "application/xhtml+xml";
@@ -70,6 +72,7 @@ export function SourcePanel({ state, dispatch }: SourcePanelProps) {
           <CodeExampleTab
             code={buildHttpRequestText(state)}
             language="http"
+            highlighter={highlighter}
           />
         </div>
       </Tab>
@@ -78,6 +81,7 @@ export function SourcePanel({ state, dispatch }: SourcePanelProps) {
           <CodeExampleTab
             code={buildWasmExample(state)}
             language="javascript"
+            highlighter={highlighter}
           />
         </div>
       </Tab>
@@ -86,6 +90,7 @@ export function SourcePanel({ state, dispatch }: SourcePanelProps) {
           <CodeExampleTab
             code={buildNodeExample(state)}
             language="javascript"
+            highlighter={highlighter}
           />
         </div>
       </Tab>
@@ -94,6 +99,7 @@ export function SourcePanel({ state, dispatch }: SourcePanelProps) {
           <CodeExampleTab
             code={buildPythonExample(state)}
             language="python"
+            highlighter={highlighter}
           />
         </div>
       </Tab>

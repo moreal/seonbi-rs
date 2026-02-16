@@ -1,35 +1,24 @@
-import { useEffect, useRef } from "react";
-import hljs from "highlight.js/lib/core";
-import javascript from "highlight.js/lib/languages/javascript";
-import python from "highlight.js/lib/languages/python";
-
-hljs.registerLanguage("javascript", javascript);
-hljs.registerLanguage("python", python);
+import { useMemo } from "react";
+import type { HighlighterCore } from "shiki/core";
 
 interface CodeExampleTabProps {
   code: string;
   language: "javascript" | "python" | "http";
+  highlighter: HighlighterCore | null;
 }
 
-export function CodeExampleTab({ code, language }: CodeExampleTabProps) {
-  const codeRef = useRef<HTMLElement>(null);
+export function CodeExampleTab({ code, language, highlighter }: CodeExampleTabProps) {
+  const html = useMemo(() => {
+    if (language === "http" || !highlighter) return null;
+    return highlighter.codeToHtml(code, {
+      lang: language,
+      theme: "github-light",
+    });
+  }, [code, language, highlighter]);
 
-  useEffect(() => {
-    if (codeRef.current && language !== "http") {
-      codeRef.current.textContent = code;
-      hljs.highlightElement(codeRef.current);
-    }
-  }, [code, language]);
-
-  if (language === "http") {
+  if (!html) {
     return <pre>{code}</pre>;
   }
 
-  return (
-    <pre>
-      <code ref={codeRef} className={`language-${language}`}>
-        {code}
-      </code>
-    </pre>
-  );
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }

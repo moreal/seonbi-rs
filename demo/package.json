@@ -12,12 +12,12 @@
   "dependencies": {
     "@seonbi/seonbi-wasm": "file:../crates/seonbi-wasm/pkg",
     "bootstrap": "^5.3.3",
-    "highlight.js": "^11.11.1",
     "html-react-parser": "^5.2.4",
     "marked": "^15.0.7",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.7",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "shiki": "^3.22.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.8",

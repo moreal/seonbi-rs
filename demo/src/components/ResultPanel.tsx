@@ -1,16 +1,14 @@
-import { useRef, useEffect } from "react";
+import { useMemo } from "react";
 import { Tab, Tabs } from "react-bootstrap";
 import parse from "html-react-parser";
-import hljs from "highlight.js/lib/core";
-import xml from "highlight.js/lib/languages/xml";
+import type { HighlighterCore } from "shiki/core";
 import type { AppState, Action } from "../types";
 import { renderMarkdown } from "../markdown";
-
-hljs.registerLanguage("xml", xml);
 
 interface ResultPanelProps {
   state: AppState;
   dispatch: React.Dispatch<Action>;
+  highlighter: HighlighterCore | null;
 }
 
 const TAB_PANE_STYLE: React.CSSProperties = {
@@ -47,39 +45,30 @@ function RenderView({ state }: { state: AppState }) {
   return <>{parse(content)}</>;
 }
 
-function CodeView({ state }: { state: AppState }) {
-  const codeRef = useRef<HTMLElement>(null);
+function CodeView({ state, highlighter }: { state: AppState; highlighter: HighlighterCore | null }) {
+  const content = state.result?.content ?? null;
+  const contentType = state.result?.contentType ?? null;
 
-  useEffect(() => {
+  const html = useMemo(() => {
     if (
-      codeRef.current &&
-      state.result &&
-      (state.result.contentType === "text/html" ||
-        state.result.contentType === "application/xhtml+xml")
+      !content ||
+      !(contentType === "text/html" || contentType === "application/xhtml+xml") ||
+      !highlighter
     ) {
-      codeRef.current.textContent = state.result.content;
-      hljs.highlightElement(codeRef.current);
+      return null;
     }
-  }, [state.result]);
+    return highlighter.codeToHtml(content, {
+      lang: "xml",
+      theme: "github-light",
+    });
+  }, [content, contentType, highlighter]);
 
   if (!state.result) return null;
-
-  const { content, contentType } = state.result;
-
-  if (contentType === "text/html" || contentType === "application/xhtml+xml") {
-    return (
-      <pre>
-        <code ref={codeRef} className="language-xml">
-          {content}
-        </code>
-      </pre>
-    );
-  }
-
-  return <pre>{content}</pre>;
+  if (html) return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  return <pre>{state.result.content}</pre>;
 }
 
-export function ResultPanel({ state, dispatch }: ResultPanelProps) {
+export function ResultPanel({ state, dispatch, highlighter }: ResultPanelProps) {
   return (
     <Tabs
       activeKey={state.resultTab}
@@ -92,7 +81,7 @@ export function ResultPanel({ state, dispatch }: ResultPanelProps) {
       </Tab>
       <Tab eventKey="code" title="Code">
         <div style={TAB_PANE_STYLE}>
-          <CodeView state={state} />
+          <CodeView state={state} highlighter={highlighter} />
         </div>
       </Tab>
     </Tabs>

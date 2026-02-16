@@ -3,6 +3,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import type { Configuration } from "@seonbi/seonbi-wasm";
 import { transform } from "./wasm";
 import { useWasm } from "./hooks/useWasm";
+import { useShiki } from "./hooks/useShiki";
 import { INITIAL_CONTENT, DEFAULT_CUSTOM_OPTIONS } from "./constants";
 import type {
   AppState,
@@ -418,6 +419,7 @@ function isSourceUnchanged(state: AppState): boolean {
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, createInitialState);
   const { ready: wasmReady, error: wasmError } = useWasm();
+  const { highlighter } = useShiki();
 
   const handleTransform = useCallback(() => {
     try {
@@ -449,10 +451,10 @@ export default function App() {
       <Container className="mt-3">
         <Row>
           <Col>
-            <SourcePanel state={state} dispatch={dispatch} />
+            <SourcePanel state={state} dispatch={dispatch} highlighter={highlighter} />
           </Col>
           <Col>
-            <ResultPanel state={state} dispatch={dispatch} />
+            <ResultPanel state={state} dispatch={dispatch} highlighter={highlighter} />
           </Col>
         </Row>
         <Row>
