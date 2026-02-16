@@ -72,3 +72,34 @@ test('transform covers quote/contentType matrix for koKr', () => {
     assert.equal(output, c.expected, `quote=${c.quote}, contentType=${c.contentType}`)
   }
 })
+
+test('custom dictionary overrides built-in entries', () => {
+  const config = {
+    contentType: 'text/html',
+    hanja: {
+      rendering: 'HangulOnly',
+      reading: {
+        initialSoundLaw: false,
+        useDictionaries: ['kr-stdict'],
+        dictionary: { '漢字': '커스텀' },
+      },
+    },
+  }
+  const output = binding.transform(config, '<p>漢字</p>')
+  assert.ok(output.includes('커스텀'), `expected custom reading but got: ${output}`)
+})
+
+test('transform works without dictionary field (backward compat)', () => {
+  const config = {
+    contentType: 'text/html',
+    hanja: {
+      rendering: 'HangulOnly',
+      reading: {
+        initialSoundLaw: true,
+        useDictionaries: ['kr-stdict'],
+      },
+    },
+  }
+  const output = binding.transform(config, '<p>漢字</p>')
+  assert.ok(output.includes('한자'), `expected default reading but got: ${output}`)
+})

@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 use napi::Error;
 use napi_derive::napi;
@@ -59,6 +59,8 @@ pub struct HanjaReadingOption {
     pub initial_sound_law: bool,
     #[napi(js_name = "useDictionaries")]
     pub use_dictionaries: Vec<String>,
+    #[napi(js_name = "dictionary")]
+    pub dictionary: Option<HashMap<String, String>>,
 }
 
 #[napi(object)]
@@ -148,7 +150,8 @@ fn to_internal_config(config: Configuration) -> napi::Result<InternalConfigurati
 }
 
 fn to_internal_hanja_option(option: HanjaOption) -> napi::Result<InternalHanjaOption> {
-    let mut dictionary = BTreeMap::new();
+    let mut dictionary: BTreeMap<String, String> =
+        option.reading.dictionary.unwrap_or_default().into_iter().collect();
     for dict_id in option.reading.use_dictionaries {
         match dict_id.as_str() {
             "kr-stdict" => {
@@ -217,6 +220,7 @@ fn from_internal_hanja_option(option: InternalHanjaOption) -> HanjaOption {
         reading: HanjaReadingOption {
             initial_sound_law: option.reading.initial_sound_law,
             use_dictionaries,
+            dictionary: None,
         },
     }
 }
@@ -382,9 +386,28 @@ mod tests {
             reading: HanjaReadingOption {
                 initial_sound_law: false,
                 use_dictionaries: vec!["nope".to_string()],
+                dictionary: None,
             },
         });
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn custom_dictionary_overrides_builtin() {
+        let mut custom = HashMap::new();
+        custom.insert("漢字".to_string(), "커스텀".to_string());
+
+        let option = HanjaOption {
+            rendering: HanjaRenderingOption::HangulOnly,
+            reading: HanjaReadingOption {
+                initial_sound_law: false,
+                use_dictionaries: vec!["kr-stdict".to_string()],
+                dictionary: Some(custom),
+            },
+        };
+
+        let result = to_internal_hanja_option(option).expect("must succeed");
+        assert_eq!(result.reading.dictionary.get("漢字"), Some(&"커스텀".to_string()),);
     }
 }
