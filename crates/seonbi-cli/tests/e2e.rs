@@ -258,3 +258,18 @@ fn mixed_quote_spellings_are_not_paired() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(stdout, "\"a&quot;", "mixed-spelling quotes should not be paired");
 }
+
+#[test]
+fn markdown_code_span_round_trips() {
+    // Regression: markdown code spans were serialized as raw HTML instead of backtick syntax.
+    let output = run_cli(
+        &["-e", "utf-8", "-t", "text/markdown", "--maintain-hanja"],
+        "Hello `code` world\n".as_bytes(),
+    );
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        stdout.contains("`code`"),
+        "code span should round-trip through markdown, got: {stdout}",
+    );
+}

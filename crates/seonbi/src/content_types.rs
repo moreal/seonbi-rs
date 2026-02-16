@@ -212,6 +212,10 @@ fn entities_to_markdown(entities: &[HtmlEntity]) -> Result<String, ContentTypeEr
                             open.push(OpenTag::Ignore(*tag));
                             continue;
                         }
+                        "code-span" => {
+                            open.push(OpenTag::CodeSpan(events.len()));
+                            continue;
+                        }
                         _ => {}
                     }
 
@@ -249,6 +253,15 @@ fn entities_to_markdown(entities: &[HtmlEntity]) -> Result<String, ContentTypeEr
                         if open_tag != *tag {
                             let _ = tag;
                         }
+                    }
+                    OpenTag::CodeSpan(start_idx) => {
+                        let mut code = String::new();
+                        for ev in events.drain(start_idx..) {
+                            if let Event::Text(t) = ev {
+                                code.push_str(&t);
+                            }
+                        }
+                        events.push(Event::Code(CowStr::from(code)));
                     }
                 }
             }
@@ -371,6 +384,19 @@ fn html_to_markdown_start_tag(
                 TagEnd::Link,
             ))
         }
+        "image" => {
+            let dest_url = get_attr(raw_attributes, "src").unwrap_or_default();
+            let title = get_attr(raw_attributes, "title").unwrap_or_default();
+            Some((
+                Tag::Image {
+                    link_type: LinkType::Inline,
+                    dest_url: CowStr::from(dest_url),
+                    title: CowStr::from(title),
+                    id: CowStr::from(String::new()),
+                },
+                TagEnd::Image,
+            ))
+        }
         _ => {
             let _ = tag;
             None
@@ -486,4 +512,5 @@ enum OpenTag {
     Markdown(TagEnd),
     Raw(HtmlTag),
     Ignore(HtmlTag),
+    CodeSpan(usize),
 }
