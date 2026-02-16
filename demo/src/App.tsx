@@ -108,6 +108,7 @@ function reducer(state: AppState, action: Action): AppState {
           source: action.source,
           preset: action.preset,
           customOptions: action.customOptions,
+          customDictionary: action.customDictionary,
         },
       };
     }
@@ -412,7 +413,11 @@ function isSourceUnchanged(state: AppState): boolean {
     last.source.contentType === state.source.contentType &&
     last.preset === state.preset &&
     JSON.stringify(last.customOptions) ===
-      JSON.stringify(getCustomOptionsForComparison(state))
+      JSON.stringify(getCustomOptionsForComparison(state)) &&
+    (state.preset !== "custom" ||
+      !state.lastCustomOptions.hanja ||
+      JSON.stringify(last.customDictionary) ===
+        JSON.stringify(state.customDictionary))
   );
 }
 
@@ -437,6 +442,7 @@ export default function App() {
         source: { ...state.source },
         preset: state.preset,
         customOptions: getCustomOptionsForComparison(state),
+        customDictionary: { ...state.customDictionary },
       });
     } catch (err) {
       dispatch({ type: "TRANSFORM_ERROR", error: String(err) });
