@@ -35,8 +35,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: yarn
-          cache-dependency-path: demo/yarn.lock
       - name: Install demo dependencies
         run: corepack enable && cd demo && yarn install
       - name: Build demo
