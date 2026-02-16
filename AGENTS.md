@@ -34,3 +34,4 @@
 - Each task must be committed separately.
 - Before committing, run `codex-review --uncommitted` and address all actionable findings.
 - Repeat until no actionable findings remain, then commit.
+- Do not use the `-C` option with git commands. Always run git commands from the repository root directory.
