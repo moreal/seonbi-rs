@@ -1,5 +1,9 @@
 # seonbi-rs
 
+<p align="center">
+  <img src="assets/logo.svg" alt="seonbi logo" width="220">
+</p>
+
 Rust port of `seonbi`.
 
 ## Language Bindings

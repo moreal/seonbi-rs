@@ -6,6 +6,7 @@ build-backend = "maturin"
 name = "seonbi"
 version = "0.1.0"
 description = "Korean typographic adjustment processor"
+readme = "README.md"
 requires-python = ">=3.14"
 license = { text = "LGPL-2.1" }
 classifiers = [
