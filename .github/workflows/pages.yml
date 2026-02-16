@@ -36,7 +36,7 @@ jobs:
         with:
           node-version: 22
       - name: Install demo dependencies
-        run: corepack enable && cd demo && yarn install
+        run: corepack enable && cd demo && yarn install --no-immutable
       - name: Build demo
         run: cd demo && yarn build
       - uses: actions/configure-pages@v5
