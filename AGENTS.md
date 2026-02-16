@@ -17,6 +17,11 @@
 - CLI (`crates/seonbi-cli`) cannot achieve full flag-level compatibility with the original because the original uses Haskell's `optparse-applicative` while the Rust port uses `clap`. Differences in flag parsing behavior (e.g., option grouping, error messages) are expected and acceptable.
 - When reviewing for compatibility, compare against the original Haskell source in `seonbi/` and the reference binary in `.tools/original/seonbi-0.5.0/seonbi`.
 
+## Testing Policy
+
+- E2E tests are the source of truth. When adding regression tests for bug fixes, always write E2E tests first.
+- Unit tests may be added as supplementary tests, but E2E tests take priority.
+
 ## Local Verification Before Commit
 
 - When implementing work, add or update `mise` tasks so the change can be tested locally.
