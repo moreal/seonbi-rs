@@ -10,3 +10,6 @@ crates/seonbi-node/deno.lock
 crates/seonbi-wasm/pkg/
 crates/seonbi-python/.venv/
 crates/seonbi-python/dist/
+demo/node_modules/
+demo/dist/
+demo/.yarn/

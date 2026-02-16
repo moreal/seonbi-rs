@@ -1,0 +1,32 @@
+{
+  "name": "seonbi-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "npx oxlint src/"
+  },
+  "dependencies": {
+    "@seonbi/seonbi-wasm": "file:../crates/seonbi-wasm/pkg",
+    "bootstrap": "^5.3.3",
+    "highlight.js": "^11.11.1",
+    "html-react-parser": "^5.2.4",
+    "marked": "^15.0.7",
+    "react": "^19.0.0",
+    "react-bootstrap": "^2.10.7",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "oxlint": "^0.16.6",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0",
+    "vite-plugin-wasm": "^3.4.1"
+  },
+  "packageManager": "yarn@4.6.0"
+}

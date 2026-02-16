@@ -114,3 +114,17 @@ cargo test -p seonbi-api --test e2e compares_with_original_when_configured -- --
 description = "Run both CLI/API original-vs-ported E2E comparisons"
 depends = ["e2e-cli-original", "e2e-api-original"]
 run = "echo Original comparison E2E tests completed"
+
+[tasks.demo-dev]
+description = "Start demo app dev server"
+depends = ["wasm-build"]
+run = "cd demo && yarn install && yarn dev"
+
+[tasks.demo-build]
+description = "Build demo app for production"
+depends = ["wasm-build"]
+run = "cd demo && yarn install && yarn build"
+
+[tasks.demo-lint]
+description = "Lint demo app"
+run = "cd demo && npx oxlint src/"
