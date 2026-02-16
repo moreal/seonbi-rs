@@ -21,6 +21,8 @@
 
 - E2E tests are the source of truth. When adding regression tests for bug fixes, always write E2E tests first.
 - Unit tests may be added as supplementary tests, but E2E tests take priority.
+- E2E comparison tasks are available via `mise`: `mise run e2e-cli-original`, `mise run e2e-api-original`, `mise run e2e-original-all`.
+- Required E2E environment variables are provided by default in `mise.toml` (`SEONBI_ORIGINAL_BIN`, `SEONBI_ORIGINAL_API_BIN`, `SEONBI_ORIGINAL_API_URL`).
 
 ## Local Verification Before Commit
 

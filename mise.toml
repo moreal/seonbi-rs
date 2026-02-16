@@ -4,6 +4,11 @@ deno = "2.6.9"
 bun = "1.3.9"
 python = "3.14"
 
+[env]
+SEONBI_ORIGINAL_BIN = ".tools/original/seonbi-0.5.0/seonbi"
+SEONBI_ORIGINAL_API_BIN = ".tools/original/seonbi-0.5.0/seonbi-api"
+SEONBI_ORIGINAL_API_URL = "http://127.0.0.1:3800"
+
 [tasks.node-deps]
 description = "Install Node binding dependencies"
 run = "cd crates/seonbi-node && npm install"
@@ -75,7 +80,12 @@ run = "echo All binding tests completed"
 [tasks.e2e-cli-original]
 description = "Run CLI original-vs-ported E2E comparison using .tools binaries"
 run = """
-SEONBI_ORIGINAL_BIN="$(git rev-parse --show-toplevel)/.tools/original/seonbi-0.5.0/seonbi" \
+set -euo pipefail
+orig_bin="$SEONBI_ORIGINAL_BIN"
+if [[ "$orig_bin" != /* ]]; then
+  orig_bin="$(git rev-parse --show-toplevel)/$orig_bin"
+fi
+SEONBI_ORIGINAL_BIN="$orig_bin" \
   cargo test -p seonbi-cli --test e2e_compare -- --nocapture
 """
 
@@ -83,8 +93,12 @@ SEONBI_ORIGINAL_BIN="$(git rev-parse --show-toplevel)/.tools/original/seonbi-0.5
 description = "Run API original-vs-ported E2E comparison using .tools binaries"
 run = """
 set -euo pipefail
-orig_api="$(git rev-parse --show-toplevel)/.tools/original/seonbi-0.5.0/seonbi-api"
-port=3800
+orig_api="$SEONBI_ORIGINAL_API_BIN"
+if [[ "$orig_api" != /* ]]; then
+  orig_api="$(git rev-parse --show-toplevel)/$orig_api"
+fi
+port="${SEONBI_ORIGINAL_API_URL##*:}"
+port="${port%%/*}"
 "$orig_api" --host 127.0.0.1 --port "$port" >/tmp/seonbi-original-api.log 2>&1 &
 orig_pid=$!
 cleanup() {
@@ -93,8 +107,7 @@ cleanup() {
 }
 trap cleanup EXIT
 sleep 0.3
-SEONBI_ORIGINAL_API_URL="http://127.0.0.1:${port}" \
-  cargo test -p seonbi-api --test e2e compares_with_original_when_configured -- --nocapture
+cargo test -p seonbi-api --test e2e compares_with_original_when_configured -- --nocapture
 """
 
 [tasks.e2e-original-all]
