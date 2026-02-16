@@ -28,3 +28,9 @@
 
 - When implementing work, add or update `mise` tasks so the change can be tested locally.
 - Before committing, verify the change through the `pre-commit` hook and ensure it passes.
+
+## Commit Workflow
+
+- Each task must be committed separately.
+- Before committing, run `codex-review --uncommitted` and address all actionable findings.
+- Repeat until no actionable findings remain, then commit.
