@@ -1,6 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      viewBox="24 19 67 52"
      preserveAspectRatio="xMidYMid meet">
+  <style>
+    .border-line { stroke: #2a1209; }
+
+    @media (prefers-color-scheme: dark) {
+      .border-line { stroke: #ffffff; }
+    }
+  </style>
+
   <defs>
     <linearGradient id="rustGrad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#5b2a14"/>
@@ -31,7 +39,7 @@
     <!-- Brim -->
     <ellipse cx="58" cy="49" rx="30" ry="10"
       fill="url(#rustGrad)"
-      stroke="#2a1209" stroke-width="1.6"
+      class="border-line" stroke-width="1.6"
       filter="url(#rustTextureClipped)"/>
 
     <!-- Under-brim -->
@@ -59,18 +67,18 @@
              C66.1 24 68.9 26.5 68.9 30
              L68.9 45"
       fill="none"
-      stroke="#2a1209" stroke-width="1.6"
+      class="border-line" stroke-width="1.6"
       stroke-linecap="round" stroke-linejoin="round"/>
 
     <!-- notch -->
     <path d="M52.6 46.5 L52.6 42.8"
-      stroke="#2a1209" stroke-width="1.5" stroke-linecap="round"/>
+      class="border-line" stroke-width="1.5" stroke-linecap="round"/>
 
     <!-- straps -->
     <path d="M47 56 C46 58.2 46.4 60.8 48.7 62 C51.3 63.4 52.8 61.2 52 59"
-      fill="none" stroke="#2a1209" stroke-width="1.4" stroke-linecap="round"/>
+      fill="none" class="border-line" stroke-width="1.4" stroke-linecap="round"/>
     <path d="M62 56 C61 58.2 61.4 60.8 63.7 62 C66.3 63.4 67.8 61.2 67 59"
-      fill="none" stroke="#2a1209" stroke-width="1.4" stroke-linecap="round"/>
+      fill="none" class="border-line" stroke-width="1.4" stroke-linecap="round"/>
 
     <!-- freckles -->
     <g opacity="0.55">
