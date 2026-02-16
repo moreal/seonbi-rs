@@ -237,3 +237,15 @@ fn hanja_preserves_numeric_char_refs_in_non_hanja_spans() {
         "numeric char refs should be preserved, got: {stdout}",
     );
 }
+
+#[test]
+fn empty_quoted_content_preserves_delimiters() {
+    // Regression: empty quoted content like "" dropped both delimiters entirely.
+    let output = run_cli(&["-e", "utf-8", "-q", "curved-quotes"], "\"\"".as_bytes());
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        stdout.contains("ldquo") && stdout.contains("rdquo"),
+        "empty quoted content should still produce open/close quotes, got: {stdout}",
+    );
+}

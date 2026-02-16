@@ -396,10 +396,13 @@ fn transform_quote_pair(
         _ => &quotes.single_quotes,
     };
 
-    let Some(first) = middle.first() else {
+    let stack = if let Some(first) = middle.first() {
+        first.tag_stack().clone()
+    } else if let Some(first) = buffer.first() {
+        first.tag_stack().clone()
+    } else {
         return middle;
     };
-    let stack = first.tag_stack().clone();
 
     match pair {
         QuotePair::QuotePair(open, close) => {

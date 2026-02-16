@@ -93,6 +93,8 @@ fn compare_stdin_stdout_matrix() {
             ("markdown", &["-t", "text/markdown"], "*漢字*"),
             // regression: numeric char refs preserved in non-hanja text
             ("numeric char ref in hanja", &["-e", "utf-8"], "<p>漢字 &#60;&#61;&#62;</p>"),
+            // regression: empty quoted content preserves delimiters
+            ("empty double quote", &["-e", "utf-8", "-q", "curved-quotes"], "\"\""),
         ];
 
         for (name, args, stdin_input) in cases {
