@@ -447,7 +447,7 @@ fn analyze_hanja_text(text: &str) -> Option<Vec<(bool, String)>> {
 
     while i < text.len() {
         if let Some((ch, consumed)) = parse_numeric_char_ref(&text[i..]) {
-            tokens.push((ch, ch.to_string()));
+            tokens.push((ch, text[i..i + consumed].to_string()));
             i += consumed;
             continue;
         }

@@ -91,6 +91,8 @@ fn compare_stdin_stdout_matrix() {
             ("no kr stdict", &["-S"], "<p>困難</p>"),
             ("plain text", &["-t", "text/plain"], "漢字"),
             ("markdown", &["-t", "text/markdown"], "*漢字*"),
+            // regression: numeric char refs preserved in non-hanja text
+            ("numeric char ref in hanja", &["-e", "utf-8"], "<p>漢字 &#60;&#61;&#62;</p>"),
         ];
 
         for (name, args, stdin_input) in cases {
