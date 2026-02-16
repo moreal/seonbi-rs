@@ -249,3 +249,12 @@ fn empty_quoted_content_preserves_delimiters() {
         "empty quoted content should still produce open/close quotes, got: {stdout}",
     );
 }
+
+#[test]
+fn mixed_quote_spellings_are_not_paired() {
+    // Regression: mixed spellings like "a&quot; were incorrectly paired and transformed.
+    let output = run_cli(&["-e", "utf-8"], "\"a&quot;".as_bytes());
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout, "\"a&quot;", "mixed-spelling quotes should not be paired");
+}

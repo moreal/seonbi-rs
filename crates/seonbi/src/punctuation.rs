@@ -246,7 +246,9 @@ pub fn transform_quote(quotes: &Quotes, entities: Vec<HtmlEntity>) -> Vec<HtmlEn
         ignores_tag_stack: Box::new(is_preserved_tag_stack),
         match_start: Box::new(match_quote_start),
         match_end: Box::new(match_quote_end),
-        are_matches_paired: Box::new(|(a, _), (b, _)| are_quote_pairs(*a, *b)),
+        are_matches_paired: Box::new(|(a, a_text), (b, b_text)| {
+            are_quote_pairs(*a, *b) && a_text == b_text
+        }),
         transform_pair: Box::new(move |start, end, buffer| {
             transform_quote_pair(&quotes, start.0, &start.1, &end.1, buffer)
         }),

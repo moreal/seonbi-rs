@@ -95,6 +95,8 @@ fn compare_stdin_stdout_matrix() {
             ("numeric char ref in hanja", &["-e", "utf-8"], "<p>漢字 &#60;&#61;&#62;</p>"),
             // regression: empty quoted content preserves delimiters
             ("empty double quote", &["-e", "utf-8", "-q", "curved-quotes"], "\"\""),
+            // regression: mixed-spelling quotes not paired
+            ("mixed quote spelling", &["-e", "utf-8"], "\"a&quot;"),
         ];
 
         for (name, args, stdin_input) in cases {
