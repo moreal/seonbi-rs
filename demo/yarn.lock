@@ -778,12 +778,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@seonbi/seonbi-wasm@file:../crates/seonbi-wasm/pkg::locator=seonbi-demo%40workspace%3A.":
-  version: 0.1.0
-  resolution: "@seonbi/seonbi-wasm@file:../crates/seonbi-wasm/pkg#../crates/seonbi-wasm/pkg::hash=3102a5&locator=seonbi-demo%40workspace%3A."
-  checksum: 10c0/09da97a4c796fc2c5e8ba75c386a82840e157ea30cd32a0cee78732b84358e98c961355952a1990a6f5d69485651994080acf143538cc9fa77c97d80696c9522
+"@seonbi/seonbi-wasm@portal:../crates/seonbi-wasm/pkg::locator=seonbi-demo%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@seonbi/seonbi-wasm@portal:../crates/seonbi-wasm/pkg::locator=seonbi-demo%40workspace%3A."
   languageName: node
-  linkType: hard
+  linkType: soft
 
 "@shikijs/core@npm:3.22.0":
   version: 3.22.0
@@ -2273,7 +2272,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "seonbi-demo@workspace:."
   dependencies:
-    "@seonbi/seonbi-wasm": "file:../crates/seonbi-wasm/pkg"
+    "@seonbi/seonbi-wasm": "portal:../crates/seonbi-wasm/pkg"
     "@types/react": "npm:^19.0.8"
     "@types/react-dom": "npm:^19.0.3"
     "@vitejs/plugin-react": "npm:^4.3.4"
