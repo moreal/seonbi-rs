@@ -1,4 +1,4 @@
-name: Node Bindings
+name: CI
 
 on:
   push:
@@ -6,8 +6,50 @@ on:
       - main
   pull_request:
 
+env:
+  PYTHON_VERSION: '3.14'
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: cargo fmt
+        run: cargo fmt --all -- --check
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets --exclude node --exclude wasm --exclude python
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo test
+        run: cargo test --workspace --exclude node --exclude wasm --exclude python
+
+  build-wasm:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+      - name: Build wasm package
+        run: wasm-pack build crates/wasm --release --target web --scope seonbi
+      - name: Run Rust unit tests
+        run: cargo test -p wasm
+      - name: Run browser wasm tests
+        run: wasm-pack test --headless --chrome crates/wasm
+
   build-node:
+    needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -72,6 +114,7 @@ jobs:
         run: node --test __tests__/index.spec.mjs
 
   test-bun:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -90,6 +133,7 @@ jobs:
         run: bun run crates/node/__tests__/runtime-smoke.mjs
 
   test-deno:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -108,3 +152,84 @@ jobs:
         run: npx napi build --release --platform
       - name: Run Deno runtime smoke test
         run: deno run -A --unstable-detect-cjs --node-modules-dir=auto crates/node/__tests__/runtime-smoke.mjs
+
+  build-python-linux:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          target: ${{ matrix.target }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          manylinux: 2_28
+          args: --release --manifest-path crates/python/Cargo.toml --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-wheels-linux-${{ matrix.target }}
+          path: dist
+
+  build-python-macos:
+    needs: test
+    runs-on: macos-15
+    strategy:
+      matrix:
+        target: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          target: ${{ matrix.target }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          args: --release --manifest-path crates/python/Cargo.toml --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-wheels-macos-${{ matrix.target }}
+          path: dist
+
+  build-python-windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          python-version: ${{ env.PYTHON_VERSION }}
+          args: --release --manifest-path crates/python/Cargo.toml --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-wheels-windows-x64
+          path: dist
+
+  test-python:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build/test tools
+        run: python -m pip install --upgrade pip maturin pytest
+      - name: Build wheel
+        run: maturin build --release --manifest-path crates/python/Cargo.toml --out dist
+      - name: Install wheel
+        run: python -m pip install dist/seonbi-*.whl
+      - name: Run tests
+        run: pytest crates/python/tests
