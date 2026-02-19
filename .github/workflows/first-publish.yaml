@@ -19,7 +19,7 @@ jobs:
           sed -i "s/^version = \".*\"/version = \"${{ inputs.version }}\"/" crates/seonbi/Cargo.toml
           grep '^version = ' crates/seonbi/Cargo.toml
       - name: Publish to crates.io
-        run: cargo publish -p seonbi
+        run: cargo publish -p seonbi --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
