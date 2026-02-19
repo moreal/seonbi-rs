@@ -14,6 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
+      - name: Set crate version
+        run: |
+          sed -i "s/^version = \".*\"/version = \"${{ inputs.version }}\"/" crates/seonbi/Cargo.toml
+          grep '^version = ' crates/seonbi/Cargo.toml
       - name: Publish to crates.io
         run: cargo publish -p seonbi
         env:
@@ -93,14 +97,20 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           pattern: node-bindings-*
-          path: crates/node
+          path: crates/node/artifacts
           merge-multiple: true
       - name: Install JS dependencies
         working-directory: crates/node
         run: npm install
+      - name: Create platform package directories
+        working-directory: crates/node
+        run: npx napi create-npm-dirs
+      - name: Collect node artifacts into platform packages
+        working-directory: crates/node
+        run: npx napi artifacts
       - name: Prepare npm packages
         working-directory: crates/node
-        run: npx napi prepublish -t npm
+        run: npx napi prepublish -t npm --no-gh-release --skip-optional-publish
       - name: Determine npm dist-tag
         id: npm-tag
         run: |
@@ -112,15 +122,22 @@ jobs:
           fi
       - name: Publish main package
         working-directory: crates/node
-        run: npm publish --access public --tag ${{ steps.npm-tag.outputs.tag }}
+        run: npm publish --ignore-scripts --access public --tag ${{ steps.npm-tag.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish platform packages
         working-directory: crates/node
         run: |
-          for dir in npm/*/; do
+          shopt -s nullglob
+          platform_dirs=(npm/*/)
+          if (( ${#platform_dirs[@]} == 0 )); then
+            echo "No platform packages found under crates/node/npm; skipping."
+            exit 0
+          fi
+
+          for dir in "${platform_dirs[@]}"; do
             cd "$dir"
-            npm publish --access public --tag ${{ steps.npm-tag.outputs.tag }}
+            npm publish --ignore-scripts --access public --tag ${{ steps.npm-tag.outputs.tag }}
             cd ../..
           done
         env:
