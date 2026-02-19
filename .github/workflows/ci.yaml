@@ -307,7 +307,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Set version from git tag
         working-directory: crates/node
-        run: npm version ${GITHUB_REF#refs/tags/v} --no-git-tag-version --allow-same-version
+        run: npm version "${GITHUB_REF#refs/tags/v}" --no-git-tag-version --allow-same-version
       - name: Download all node binding artifacts
         uses: actions/download-artifact@v7
         with:
@@ -362,7 +362,7 @@ jobs:
         run: wasm-pack build crates/wasm --release --target web --scope seonbi
       - name: Set version from git tag
         working-directory: crates/wasm/pkg
-        run: npm version ${GITHUB_REF#refs/tags/v} --no-git-tag-version --allow-same-version
+        run: npm version "${GITHUB_REF#refs/tags/v}" --no-git-tag-version --allow-same-version
       - name: Determine npm dist-tag
         id: npm-tag
         run: |

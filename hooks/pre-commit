@@ -13,4 +13,7 @@ cargo fmt --all -- --check
 echo "[pre-commit] cargo clippy --workspace --all-targets"
 cargo clippy --workspace --all-targets
 
+echo "[pre-commit] actionlint"
+mise exec -- actionlint
+
 echo "[pre-commit] all checks passed"
