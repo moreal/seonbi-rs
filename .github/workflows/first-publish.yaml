@@ -120,11 +120,12 @@ jobs:
           elif [[ "$VERSION" == *-rc.* ]]; then echo "tag=rc" >> "$GITHUB_OUTPUT"
           else echo "tag=latest" >> "$GITHUB_OUTPUT"
           fi
-      - name: Publish main package
-        working-directory: crates/node
-        run: npm publish --ignore-scripts --access public --tag ${{ steps.npm-tag.outputs.tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Publish main package
+      #   Temporarily disabled.
+      #   working-directory: crates/node
+      #   run: npm publish --ignore-scripts --access public --tag ${{ steps.npm-tag.outputs.tag }}
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish platform packages
         working-directory: crates/node
         run: |
