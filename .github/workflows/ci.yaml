@@ -306,9 +306,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
+      - uses: jdx/mise-action@v3
       - name: Set version from git tag
         working-directory: crates/node
         run: npm version "${GITHUB_REF#refs/tags/v}" --no-git-tag-version --allow-same-version
@@ -369,9 +367,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
+      - uses: jdx/mise-action@v3
       - name: Install wasm-pack
         run: cargo install wasm-pack
       - name: Build wasm package
