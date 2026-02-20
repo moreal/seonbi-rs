@@ -309,7 +309,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
       - name: Set version from git tag
         working-directory: crates/node
         run: npm version "${GITHUB_REF#refs/tags/v}" --no-git-tag-version --allow-same-version
@@ -373,7 +372,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
       - name: Install wasm-pack
         run: cargo install wasm-pack
       - name: Build wasm package
