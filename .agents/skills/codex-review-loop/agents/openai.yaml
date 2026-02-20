@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Review Loop"
+  short_description: "Iterative codex review, fix, and re-review loop"
+  default_prompt: "Use $codex-review-loop to run iterative review rounds, apply actionable fixes, verify, and stop when no actionable findings remain."

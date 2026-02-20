@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Review"
+  short_description: "Run three parallel codex review passes and consolidate findings"
+  default_prompt: "Use $codex-review to run code-quality, compatibility, and performance reviews in parallel and summarize results in Korean."
