@@ -1,7 +1,11 @@
 # seonbi-rs
 
 <p align="center">
-  <img src="assets/logo.svg" alt="seonbi logo" width="220">
+  <picture>
+    <source srcset="assets/logo-dark.svg" media="(prefers-color-scheme: dark)">
+    <source srcset="assets/logo-light.svg" media="(prefers-color-scheme: light)">
+    <img src="assets/logo.svg" alt="seonbi logo" width="220">
+  </picture>
 </p>
 
 Rust port of `seonbi`.

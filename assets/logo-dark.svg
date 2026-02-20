@@ -28,6 +28,24 @@
   </defs>
 
   <g transform="rotate(14 55 48)" filter="url(#softShadow)">
+    <g fill="none" stroke="#ffffff">
+      <ellipse cx="58" cy="49" rx="30" ry="10" stroke-width="2.8"/>
+      <path d="M47.1 45
+               L47.1 30
+               C47.1 26.5 49.9 24 53.3 24
+               L62.7 24
+               C66.1 24 68.9 26.5 68.9 30
+               L68.9 45"
+        stroke-width="2.8"
+        stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M52.6 46.5 L52.6 42.8"
+        stroke-width="2.7" stroke-linecap="round"/>
+      <path d="M47 56 C46 58.2 46.4 60.8 48.7 62 C51.3 63.4 52.8 61.2 52 59"
+        stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M62 56 C61 58.2 61.4 60.8 63.7 62 C66.3 63.4 67.8 61.2 67 59"
+        stroke-width="2.6" stroke-linecap="round"/>
+    </g>
+
     <!-- Brim -->
     <ellipse cx="58" cy="49" rx="30" ry="10"
       fill="url(#rustGrad)"
