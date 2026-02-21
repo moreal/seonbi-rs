@@ -33,6 +33,18 @@ jobs:
       - name: cargo test
         run: cargo test --workspace --exclude node --exclude wasm --exclude python
 
+  e2e-original:
+    needs: test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: jdx/mise-action@v3
+      - name: Download original seonbi binaries
+        run: bash scripts/download-seonbi.sh
+      - name: Run original comparison E2E tests
+        run: mise run e2e-original-all
+
   build-wasm:
     needs: test
     runs-on: ubuntu-latest
@@ -264,6 +276,7 @@ jobs:
   ci-gate:
     if: startsWith(github.ref, 'refs/tags/v')
     needs:
+      - e2e-original
       - build-wasm
       - build-node
       - test-bun
