@@ -9,7 +9,7 @@ interface CodeExampleTabProps {
 
 export function CodeExampleTab({ code, language, highlighter }: CodeExampleTabProps) {
   const html = useMemo(() => {
-    if (language === "http" || !highlighter) return null;
+    if (!highlighter) return null;
     return highlighter.codeToHtml(code, {
       lang: language,
       theme: "github-light",
