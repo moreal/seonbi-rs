@@ -73,3 +73,9 @@ Long options are unchanged.
   surprising.
 - To keep parsing deterministic in `clap`, this port keeps `-D` as
   `--no-em-dash` and provides dictionary input as `--dict FILE` only.
+
+## License
+
+This project follows the license of the original
+[`dahlia/seonbi`](https://github.com/dahlia/seonbi) repository and is
+licensed under LGPL-2.1.
