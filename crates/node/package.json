@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Node.js bindings for seonbi-rs",
   "license": "LGPL-2.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moreal/seonbi-rs"
+  },
+  "homepage": "https://github.com/moreal/seonbi-rs",
+  "bugs": {
+    "url": "https://github.com/moreal/seonbi-rs/issues"
+  },
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
