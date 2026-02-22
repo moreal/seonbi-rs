@@ -88,8 +88,31 @@ if [[ "$orig_bin" != /* ]]; then
   orig_bin="$(git rev-parse --show-toplevel)/$orig_bin"
 fi
 SEONBI_ORIGINAL_BIN="$orig_bin" \
-  cargo test -p seonbi-cli --test e2e_compare -- --nocapture
+  cargo test -p seonbi-cli --test e2e_compare compare_stdin_stdout_matrix -- --nocapture
+SEONBI_ORIGINAL_BIN="$orig_bin" \
+  cargo test -p seonbi-cli --test e2e_compare compare_file_io -- --nocapture
+SEONBI_ORIGINAL_BIN="$orig_bin" \
+  cargo test -p seonbi-cli --test e2e_compare compare_dict_short_option -- --nocapture
 """
+
+[tasks.e2e-cli-original-fuzz]
+description = "Run CLI fuzz matrix E2E comparison against original binary"
+run = """
+set -euo pipefail
+orig_bin="$SEONBI_ORIGINAL_BIN"
+if [[ "$orig_bin" != /* ]]; then
+  orig_bin="$(git rev-parse --show-toplevel)/$orig_bin"
+fi
+SEONBI_ORIGINAL_BIN="$orig_bin" \
+  cargo test -p seonbi-cli --test e2e_compare compare_recorded_fuzz_regressions_with_original -- --nocapture
+SEONBI_ORIGINAL_BIN="$orig_bin" \
+  cargo test -p seonbi-cli --test e2e_compare compare_fuzz_matrix_with_original -- --nocapture
+"""
+
+[tasks.e2e-cli-original-all]
+description = "Run all CLI original-vs-ported E2E comparisons (fixed + fuzz matrix)"
+depends = ["e2e-cli-original", "e2e-cli-original-fuzz"]
+run = "echo CLI original comparison E2E tests completed"
 
 [tasks.e2e-api-original]
 description = "Run API original-vs-ported E2E comparison using .tools binaries"
@@ -114,7 +137,7 @@ cargo test -p seonbi-api --test e2e compares_with_original_when_configured -- --
 
 [tasks.e2e-original-all]
 description = "Run both CLI/API original-vs-ported E2E comparisons"
-depends = ["e2e-cli-original", "e2e-api-original"]
+depends = ["e2e-cli-original-all", "e2e-api-original"]
 run = "echo Original comparison E2E tests completed"
 
 [tasks.demo-dev]

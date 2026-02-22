@@ -8,3 +8,6 @@ license.workspace = true
 seonbi = { path = "../seonbi" }
 clap.workspace = true
 
+[dev-dependencies]
+serde.workspace = true
+serde_json.workspace = true
