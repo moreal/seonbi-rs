@@ -273,6 +273,13 @@ pub fn read_dictionary_file(path: &Path) -> Result<HanjaDictionary, std::io::Err
     ))
 }
 
+/// Loads South Korean Hanja readings from `data/ko-kr-stdict.tsv`.
+///
+/// The dataset is large and typically tracked via Git LFS. If LFS assets are not
+/// present in a local checkout, this file may contain a pointer text instead of
+/// TSV rows, which effectively yields an empty parsed dictionary. We therefore
+/// always merge `builtin_dictionary()` afterwards to preserve compatibility for
+/// critical readings.
 pub fn south_korean_dictionary() -> HanjaDictionary {
     let mut dict = {
         #[cfg(any(feature = "freeze-dict", target_arch = "wasm32"))]
