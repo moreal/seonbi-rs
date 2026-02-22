@@ -83,6 +83,11 @@ mise run e2e-cli-original-fuzz
 - If failures come from missing large dictionary assets (for example Git LFS pointer files), document it explicitly and add minimal compatibility fallback in core where justified.
 - Keep each logical fix as a separate commit when requested.
 
+## Language Policy
+
+- Think and reason in English while working through analysis and implementation details.
+- Report progress and final outcomes to the user in Korean unless the user explicitly requests another language.
+
 ## Reporting Format
 
 Report each loop round with:
