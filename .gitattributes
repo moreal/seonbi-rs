@@ -1,0 +1,1 @@
+crates/seonbi/data/*.tsv filter=lfs diff=lfs merge=lfs -text
