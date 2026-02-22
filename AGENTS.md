@@ -32,12 +32,12 @@
 ## Codex and Claude Commands
 
 - `.claude/commands/codex-review.md` and `.claude/commands/codex-review-loop.md` are Claude Code command files and remain unchanged for Claude users.
-- In Codex CLI, use the local skills `$codex-review` and `$codex-review-loop` instead of trying to run `codex-review` as a shell command.
-- If you need direct CLI review without skills, use `codex review ...` (with a space), not `codex-review`.
+- In Codex, use `/review` for code review.
+- Outside Codex, use `codex review ...` (with a space), not `codex-review`.
 
 ## Commit Workflow
 
 - Each task must be committed separately.
-- Before committing, run `$codex-review --uncommitted` (or `codex review --uncommitted`) and address all actionable findings.
+- Before committing, run `/review` if you are working in Codex. Outside Codex, run `codex review --uncommitted`. Address all actionable findings.
 - Repeat until no actionable findings remain, then commit.
 - Do not use the `-C` option with git commands. Always run git commands from the repository root directory.
