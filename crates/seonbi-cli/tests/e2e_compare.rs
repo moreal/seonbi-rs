@@ -118,6 +118,14 @@ fn original_bin_path() -> Option<PathBuf> {
     if path.exists() { Some(path) } else { None }
 }
 
+fn kr_stdict_is_lfs_pointer() -> bool {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../seonbi/data/ko-kr-stdict.tsv");
+    let Ok(contents) = fs::read_to_string(path) else {
+        return false;
+    };
+    contents.starts_with("version https://git-lfs.github.com/spec/v1")
+}
+
 fn temp_path(name: &str) -> std::path::PathBuf {
     let ts = SystemTime::now().duration_since(UNIX_EPOCH).expect("clock").as_nanos();
     std::env::temp_dir().join(format!("seonbi_cli_compare_{name}_{ts}.html"))
@@ -131,6 +139,12 @@ where
         eprintln!("skipping: set SEONBI_ORIGINAL_BIN to run comparison E2E");
         return;
     };
+    if kr_stdict_is_lfs_pointer() {
+        eprintln!(
+            "skipping: crates/seonbi/data/ko-kr-stdict.tsv is an unresolved Git LFS pointer; run git lfs pull"
+        );
+        return;
+    }
     f(&original_bin);
 }
 

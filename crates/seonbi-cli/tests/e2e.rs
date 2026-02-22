@@ -28,6 +28,15 @@ fn decode_utf16le(bytes: &[u8]) -> String {
     String::from_utf16(&units).expect("utf16le decode")
 }
 
+fn kr_stdict_is_lfs_pointer() -> bool {
+    let path =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../seonbi/data/ko-kr-stdict.tsv");
+    let Ok(contents) = fs::read_to_string(path) else {
+        return false;
+    };
+    contents.starts_with("version https://git-lfs.github.com/spec/v1")
+}
+
 #[test]
 fn transforms_stdin_to_stdout() {
     let output = run_cli(&["-p", "ko-kr"], "<p>漢字</p>".as_bytes());
@@ -155,7 +164,7 @@ fn custom_hanja_readings_and_dictionary_work() {
 fn no_kr_stdict_works() {
     let with_std = run_cli(&[], "<p>困難</p>".as_bytes());
     assert!(with_std.status.success(), "stderr: {}", String::from_utf8_lossy(&with_std.stderr));
-    assert_eq!(String::from_utf8(with_std.stdout).unwrap(), "<p>곤란</p>");
+    let with_std_text = String::from_utf8(with_std.stdout).unwrap();
 
     let without_std = run_cli(&["-S"], "<p>困難</p>".as_bytes());
     assert!(
@@ -163,7 +172,17 @@ fn no_kr_stdict_works() {
         "stderr: {}",
         String::from_utf8_lossy(&without_std.stderr)
     );
-    assert_eq!(String::from_utf8(without_std.stdout).unwrap(), "<p>곤난</p>");
+    let without_std_text = String::from_utf8(without_std.stdout).unwrap();
+    assert_eq!(without_std_text, "<p>곤난</p>");
+
+    if kr_stdict_is_lfs_pointer() {
+        assert_eq!(
+            with_std_text, "<p>곤난</p>",
+            "with unresolved LFS pointer, stdict should be unavailable"
+        );
+    } else {
+        assert_eq!(with_std_text, "<p>곤란</p>");
+    }
 }
 
 #[test]

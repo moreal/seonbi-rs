@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -247,21 +248,51 @@ pub fn presets() -> BTreeMap<String, Configuration> {
     BTreeMap::from([("ko-kp".to_string(), ko_kp()), ("ko-kr".to_string(), ko_kr())])
 }
 
-fn parse_dictionary_data(data: &str) -> HanjaDictionary {
+fn parse_dictionary_data(data: &str) -> Result<HanjaDictionary, Error> {
     let mut dict = BTreeMap::new();
-    for line in data.lines() {
-        let mut columns = line.split('\t');
-        if let (Some(hanja), Some(hangul)) = (columns.next(), columns.next()) {
-            dict.insert(hanja.to_string(), hangul.to_string());
+    for (line_no, line) in data.lines().enumerate() {
+        let line = line.trim_end_matches('\r');
+        if line.is_empty() {
+            continue;
         }
+        let mut columns = line.splitn(3, '\t');
+        let hanja = columns.next().unwrap_or_default();
+        let Some(hangul) = columns.next() else {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                format!(
+                    "invalid dictionary TSV at line {}: expected two tab-separated columns",
+                    line_no + 1
+                ),
+            ));
+        };
+        if columns.next().is_some() {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                format!(
+                    "invalid dictionary TSV at line {}: expected exactly two columns",
+                    line_no + 1
+                ),
+            ));
+        }
+        if hanja.is_empty() || hangul.is_empty() {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                format!(
+                    "invalid dictionary TSV at line {}: empty hanja or hangul column",
+                    line_no + 1
+                ),
+            ));
+        }
+        dict.insert(hanja.to_string(), hangul.to_string());
     }
-    dict
+    Ok(dict)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn read_dictionary_file(path: &Path) -> Result<HanjaDictionary, std::io::Error> {
     let data = std::fs::read_to_string(path)?;
-    Ok(parse_dictionary_data(&data))
+    parse_dictionary_data(&data)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -276,29 +307,25 @@ pub fn read_dictionary_file(path: &Path) -> Result<HanjaDictionary, std::io::Err
 /// Loads South Korean Hanja readings from `data/ko-kr-stdict.tsv`.
 ///
 /// The dataset is large and typically tracked via Git LFS. If LFS assets are not
-/// present in a local checkout, this file may contain a pointer text instead of
-/// TSV rows, which effectively yields an empty parsed dictionary. We therefore
-/// always merge `builtin_dictionary()` afterwards to preserve compatibility for
-/// critical readings.
+/// present in a local checkout, this file may contain an unresolved pointer text
+/// and parsing fails. In that case this returns an empty dictionary, matching
+/// the original Haskell implementation's fail-safe behavior.
 pub fn south_korean_dictionary() -> HanjaDictionary {
-    let mut dict = {
+    {
         #[cfg(any(feature = "freeze-dict", target_arch = "wasm32"))]
         {
             parse_dictionary_data(include_str!(concat!(
                 env!("CARGO_MANIFEST_DIR"),
                 "/data/ko-kr-stdict.tsv"
             )))
+            .unwrap_or_default()
         }
         #[cfg(not(any(feature = "freeze-dict", target_arch = "wasm32")))]
         {
             let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("data/ko-kr-stdict.tsv");
             read_dictionary_file(&path).unwrap_or_default()
         }
-    };
-    for (k, v) in builtin_dictionary() {
-        dict.entry(k).or_insert(v);
     }
-    dict
 }
 
 pub fn supported_content_types() -> std::collections::BTreeSet<ContentType> {
@@ -309,15 +336,29 @@ pub fn parse_content_type(text: &str) -> Option<ContentType> {
     content_type_from_text(text)
 }
 
-fn builtin_dictionary() -> HanjaDictionary {
-    BTreeMap::from([
-        ("困難".to_string(), "곤란".to_string()),
-        ("國漢文混用體".to_string(), "국한문 혼용체".to_string()),
-        ("孫文".to_string(), "쑨원".to_string()),
-        ("大韓民國憲法".to_string(), "대한민국 헌법".to_string()),
-        ("大韓民國臨時政府".to_string(), "대한민국 임시 정부".to_string()),
-        ("臨時政府".to_string(), "임시 정부".to_string()),
-        ("理念".to_string(), "이념".to_string()),
-        ("國民投票".to_string(), "국민 투표".to_string()),
-    ])
+#[cfg(test)]
+mod tests {
+    use super::parse_dictionary_data;
+
+    #[test]
+    fn dictionary_parser_rejects_lfs_pointer_text() {
+        let pointer = "version https://git-lfs.github.com/spec/v1\n\
+oid sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n\
+size 1234\n";
+        let err = parse_dictionary_data(pointer).expect_err("LFS pointer must be rejected");
+        assert!(err.to_string().contains("invalid dictionary TSV at line 1"));
+    }
+
+    #[test]
+    fn dictionary_parser_requires_exactly_two_columns() {
+        let err = parse_dictionary_data("漢字\t한자\textra\n").expect_err("invalid row");
+        assert!(err.to_string().contains("expected exactly two columns"));
+    }
+
+    #[test]
+    fn dictionary_parser_parses_valid_tsv() {
+        let dict = parse_dictionary_data("漢字\t한자\n孫文\t쑨원\n").expect("valid dictionary");
+        assert_eq!(dict.get("漢字"), Some(&"한자".to_string()));
+        assert_eq!(dict.get("孫文"), Some(&"쑨원".to_string()));
+    }
 }
