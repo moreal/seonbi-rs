@@ -306,6 +306,7 @@ fn builtin_dictionary() -> HanjaDictionary {
     BTreeMap::from([
         ("困難".to_string(), "곤란".to_string()),
         ("國漢文混用體".to_string(), "국한문 혼용체".to_string()),
+        ("孫文".to_string(), "쑨원".to_string()),
         ("大韓民國憲法".to_string(), "대한민국 헌법".to_string()),
         ("大韓民國臨時政府".to_string(), "대한민국 임시 정부".to_string()),
         ("臨時政府".to_string(), "임시 정부".to_string()),
