@@ -154,25 +154,37 @@ fn assert_equivalent<S: AsRef<OsStr> + std::fmt::Debug>(
     args: &[S],
     stdin_input: &str,
 ) {
+    if let Err(message) = equivalence_error(original_bin, ported_bin, args, stdin_input) {
+        panic!("{message}");
+    }
+}
+
+fn equivalence_error<S: AsRef<OsStr> + std::fmt::Debug>(
+    original_bin: &Path,
+    ported_bin: &Path,
+    args: &[S],
+    stdin_input: &str,
+) -> Result<(), String> {
     let (original, ported) = run_both(original_bin, ported_bin, args, stdin_input);
-    assert_eq!(
-        original.status.code(),
-        ported.status.code(),
-        "exit code differs\nargs: {:?}\nstdin: {:?}\noriginal stderr:\n{}\nported stderr:\n{}",
-        args,
-        stdin_input,
-        String::from_utf8_lossy(&original.stderr),
-        String::from_utf8_lossy(&ported.stderr),
-    );
-    assert_eq!(
-        original.stdout,
-        ported.stdout,
-        "stdout differs\nargs: {:?}\nstdin: {:?}\noriginal stderr:\n{}\nported stderr:\n{}",
-        args,
-        stdin_input,
-        String::from_utf8_lossy(&original.stderr),
-        String::from_utf8_lossy(&ported.stderr),
-    );
+    if original.status.code() != ported.status.code() {
+        return Err(format!(
+            "exit code differs\nargs: {:?}\nstdin: {:?}\noriginal stderr:\n{}\nported stderr:\n{}",
+            args,
+            stdin_input,
+            String::from_utf8_lossy(&original.stderr),
+            String::from_utf8_lossy(&ported.stderr),
+        ));
+    }
+    if original.stdout != ported.stdout {
+        return Err(format!(
+            "stdout differs\nargs: {:?}\nstdin: {:?}\noriginal stderr:\n{}\nported stderr:\n{}",
+            args,
+            stdin_input,
+            String::from_utf8_lossy(&original.stderr),
+            String::from_utf8_lossy(&ported.stderr),
+        ));
+    }
+    Ok(())
 }
 
 fn fuzzy_fixture_path() -> PathBuf {
@@ -608,12 +620,76 @@ fn compare_recorded_fuzz_regressions_with_original() {
             return;
         }
 
-        for record in records {
-            assert_equivalent(original_bin, &ported_bin, &record.args, &record.input);
-            eprintln!(
-                "replayed recorded fuzz case: seed={:#x} case_index={}",
-                record.seed, record.case_index
+        let default_jobs = std::thread::available_parallelism().map_or(1, |n| n.get());
+        let requested_jobs = parse_usize_env("SEONBI_E2E_REPLAY_JOBS", default_jobs);
+        let jobs = requested_jobs.min(records.len()).max(1);
+        eprintln!(
+            "replay config: cases={}, jobs={} (set SEONBI_E2E_REPLAY_JOBS to override)",
+            records.len(),
+            jobs
+        );
+
+        if jobs == 1 {
+            for record in records {
+                assert_equivalent(original_bin, &ported_bin, &record.args, &record.input);
+                eprintln!(
+                    "replayed recorded fuzz case: seed={:#x} case_index={}",
+                    record.seed, record.case_index
+                );
+            }
+            return;
+        }
+
+        let indexed_records: Vec<(usize, FuzzFailureRecord)> =
+            records.into_iter().enumerate().collect();
+        let chunk_size = indexed_records.len().div_ceil(jobs);
+        let mut completed = Vec::new();
+        let mut failures = Vec::new();
+
+        std::thread::scope(|scope| {
+            let mut handles = Vec::new();
+            for chunk in indexed_records.chunks(chunk_size) {
+                let chunk_records = chunk.to_vec();
+                let original_bin = original_bin.to_path_buf();
+                let ported_bin = ported_bin.clone();
+                handles.push(scope.spawn(move || {
+                    let mut ok = Vec::new();
+                    let mut errs = Vec::new();
+                    for (index, record) in chunk_records {
+                        match equivalence_error(
+                            &original_bin,
+                            &ported_bin,
+                            &record.args,
+                            &record.input,
+                        ) {
+                            Ok(()) => ok.push((index, record.seed, record.case_index)),
+                            Err(err) => errs.push((index, err)),
+                        }
+                    }
+                    (ok, errs)
+                }));
+            }
+
+            for handle in handles {
+                let (mut ok, mut errs) = handle.join().expect("replay worker thread panicked");
+                completed.append(&mut ok);
+                failures.append(&mut errs);
+            }
+        });
+
+        if !failures.is_empty() {
+            failures.sort_by_key(|(index, _)| *index);
+            let first = &failures[0].1;
+            panic!(
+                "recorded fuzz replay mismatch in {} case(s); first failure:\n{}",
+                failures.len(),
+                first
             );
+        }
+
+        completed.sort_by_key(|(index, _, _)| *index);
+        for (_, seed, case_index) in completed {
+            eprintln!("replayed recorded fuzz case: seed={:#x} case_index={}", seed, case_index);
         }
     });
 }
