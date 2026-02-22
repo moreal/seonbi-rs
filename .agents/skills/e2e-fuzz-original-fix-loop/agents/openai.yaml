@@ -1,0 +1,4 @@
+interface:
+  display_name: "E2E Fuzz Original Fix Loop"
+  short_description: "Run fuzz mismatch analysis and compatibility fix loop"
+  default_prompt: "Use $e2e-fuzz-original-fix-loop to run e2e fuzz against the original binary, analyze failing cases, patch crates/seonbi for compatibility, and iterate until recorded regressions pass."
