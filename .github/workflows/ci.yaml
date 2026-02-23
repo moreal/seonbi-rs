@@ -49,7 +49,7 @@ jobs:
       - name: Download original seonbi binaries
         run: bash scripts/download-seonbi.sh
       - name: Run original comparison E2E tests
-        run: mise run e2e-original-all
+        run: mise run --jobs 1 e2e-original-all
 
   build-wasm:
     needs: test
