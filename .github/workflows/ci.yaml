@@ -50,6 +50,13 @@ jobs:
         run: bash scripts/download-seonbi.sh
       - name: Run original comparison E2E tests
         run: mise run --jobs 1 e2e-original-all
+      - name: Upload proptest regressions
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: proptest-regressions-e2e-original
+          path: crates/seonbi-cli/proptest-regressions/**
+          if-no-files-found: ignore
 
   build-wasm:
     needs: test
