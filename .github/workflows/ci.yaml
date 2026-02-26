@@ -149,6 +149,15 @@ jobs:
           name: node-bindings-${{ matrix.target }}
           path: crates/node/seonbi.*.node
           if-no-files-found: error
+      - name: Upload node JS bindings
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        uses: actions/upload-artifact@v6
+        with:
+          name: node-js-bindings
+          path: |
+            crates/node/index.d.ts
+            crates/node/index.js
+          if-no-files-found: error
 
   test-bun:
     needs: test
@@ -362,6 +371,11 @@ jobs:
           pattern: node-bindings-*
           path: crates/node/artifacts
           merge-multiple: true
+      - name: Download JS bindings (index.d.ts, index.js)
+        uses: actions/download-artifact@v7
+        with:
+          name: node-js-bindings
+          path: crates/node
       - name: Install JS dependencies
         working-directory: crates/node
         run: npm install
