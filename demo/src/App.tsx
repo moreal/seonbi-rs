@@ -460,7 +460,7 @@ export default function App() {
   return (
     <>
       <GitHubCorner />
-      <Container className="mt-3">
+      <Container className="mt-3 safe-area-bottom">
         <Row>
           <Col>
             <SourcePanel state={state} dispatch={dispatch} highlighter={highlighter} />
