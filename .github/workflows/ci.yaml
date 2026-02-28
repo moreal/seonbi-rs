@@ -134,11 +134,11 @@ jobs:
         working-directory: crates/node
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
-        run: npx napi build --release --platform --target ${{ matrix.target }}
+        run: npx napi build --release --platform --no-const-enum --target ${{ matrix.target }}
       - name: Build N-API module (musl via zigbuild)
         if: matrix.target == 'x86_64-unknown-linux-musl'
         working-directory: crates/node
-        run: npx napi build --release --platform --target ${{ matrix.target }} --cross-compile
+        run: npx napi build --release --platform --no-const-enum --target ${{ matrix.target }} --cross-compile
       - name: Run Node runtime tests
         if: matrix.run_runtime_tests
         working-directory: crates/node
@@ -176,7 +176,7 @@ jobs:
         run: npm install
       - name: Build host N-API module
         working-directory: crates/node
-        run: npx napi build --release --platform
+        run: npx napi build --release --platform --no-const-enum
       - name: Run Bun runtime smoke test
         run: bun run crates/node/__tests__/runtime-smoke.mjs
 
@@ -199,7 +199,7 @@ jobs:
         run: npm install
       - name: Build host N-API module
         working-directory: crates/node
-        run: npx napi build --release --platform
+        run: npx napi build --release --platform --no-const-enum
       - name: Run Deno runtime smoke test
         run: deno run -A --unstable-detect-cjs --node-modules-dir=auto crates/node/__tests__/runtime-smoke.mjs
 

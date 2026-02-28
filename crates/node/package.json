@@ -31,8 +31,8 @@
     ]
   },
   "scripts": {
-    "build": "napi build --release --platform",
-    "build:debug": "napi build --platform",
+    "build": "napi build --release --platform --no-const-enum",
+    "build:debug": "napi build --platform --no-const-enum",
     "test": "node --test __tests__/index.spec.mjs",
     "prepublishOnly": "napi prepublish -t npm"
   },
