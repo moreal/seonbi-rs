@@ -10,6 +10,7 @@ function getHighlighter(): Promise<HighlighterCore> {
       themes: [import("shiki/themes/github-light.mjs")],
       langs: [
         import("shiki/langs/javascript.mjs"),
+        import("shiki/langs/markdown.mjs"),
         import("shiki/langs/python.mjs"),
         import("shiki/langs/http.mjs"),
         import("shiki/langs/xml.mjs"),

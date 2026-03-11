@@ -1,8 +1,9 @@
-import { Tab, Tabs, Form } from "react-bootstrap";
+import { Tab, Tabs } from "react-bootstrap";
 import type { HighlighterCore } from "shiki/core";
 import type { AppState, Action } from "../types";
 import { buildHttpRequestBody, buildWasmExample, buildNodeExample, buildPythonExample } from "../App";
 import { CodeExampleTab } from "./CodeExampleTab";
+import { HighlightedEditor } from "./HighlightedEditor";
 
 interface SourcePanelProps {
   state: AppState;
@@ -10,11 +11,16 @@ interface SourcePanelProps {
   highlighter: HighlighterCore | null;
 }
 
-const TAB_PANE_STYLE: React.CSSProperties = {
+const CODE_TAB_PANE_STYLE: React.CSSProperties = {
   marginTop: "1rem",
   height: "calc(100vh - 450px)",
   width: "540px",
   overflow: "scroll",
+};
+
+const EDITOR_TAB_PANE_STYLE: React.CSSProperties = {
+  ...CODE_TAB_PANE_STYLE,
+  overflow: "hidden",
 };
 
 function buildHttpRequestText(state: AppState): string {
@@ -41,34 +47,29 @@ export function SourcePanel({ state, dispatch, highlighter }: SourcePanelProps) 
       onSelect={(k) => dispatch({ type: "SET_SOURCE_TAB", tab: k ?? "commonmark" })}
     >
       <Tab eventKey="commonmark" title={markdownLabel}>
-        <div style={TAB_PANE_STYLE}>
-          <Form.Control
-            as="textarea"
-            rows={24}
-            className="h-100"
+        <div style={EDITOR_TAB_PANE_STYLE}>
+          <HighlightedEditor
             value={textValue}
-            onChange={(e) =>
-              dispatch({ type: "UPDATE_SOURCE_TEXT", text: e.target.value })
-            }
+            language={state.source.contentType === "text/plain" ? null : "markdown"}
+            highlighter={highlighter}
+            onChange={(text) => dispatch({ type: "UPDATE_SOURCE_TEXT", text })}
           />
         </div>
       </Tab>
       {isHtml && (
         <Tab eventKey="html" title="HTML">
-          <div style={TAB_PANE_STYLE}>
-            <Form.Control
-              as="textarea"
-              rows={20}
+          <div style={EDITOR_TAB_PANE_STYLE}>
+            <HighlightedEditor
               value={state.source.html}
-              onChange={(e) =>
-                dispatch({ type: "UPDATE_SOURCE_HTML", html: e.target.value })
-              }
+              language="xml"
+              highlighter={highlighter}
+              onChange={(html) => dispatch({ type: "UPDATE_SOURCE_HTML", html })}
             />
           </div>
         </Tab>
       )}
       <Tab eventKey="http" title="HTTP">
-        <div style={TAB_PANE_STYLE}>
+        <div style={CODE_TAB_PANE_STYLE}>
           <CodeExampleTab
             code={buildHttpRequestText(state)}
             language="http"
@@ -77,7 +78,7 @@ export function SourcePanel({ state, dispatch, highlighter }: SourcePanelProps) 
         </div>
       </Tab>
       <Tab eventKey="wasm" title="WASM">
-        <div style={TAB_PANE_STYLE}>
+        <div style={CODE_TAB_PANE_STYLE}>
           <CodeExampleTab
             code={buildWasmExample(state)}
             language="javascript"
@@ -86,7 +87,7 @@ export function SourcePanel({ state, dispatch, highlighter }: SourcePanelProps) 
         </div>
       </Tab>
       <Tab eventKey="nodejs" title="Node.js">
-        <div style={TAB_PANE_STYLE}>
+        <div style={CODE_TAB_PANE_STYLE}>
           <CodeExampleTab
             code={buildNodeExample(state)}
             language="javascript"
@@ -95,7 +96,7 @@ export function SourcePanel({ state, dispatch, highlighter }: SourcePanelProps) 
         </div>
       </Tab>
       <Tab eventKey="python" title="Python">
-        <div style={TAB_PANE_STYLE}>
+        <div style={CODE_TAB_PANE_STYLE}>
           <CodeExampleTab
             code={buildPythonExample(state)}
             language="python"

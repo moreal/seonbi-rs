@@ -1,3 +1,78 @@
 .safe-area-bottom {
   padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
+
+.highlighted-editor {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  background: #fff;
+}
+
+.highlighted-editor:focus-within {
+  border-color: rgba(var(--bs-primary-rgb), 0.6);
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.highlighted-editor__input,
+.highlighted-editor__highlight .shiki {
+  font-family:
+    SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+.highlighted-editor__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem;
+  border: 0;
+  border-radius: inherit;
+  resize: none;
+  background: transparent;
+  color: var(--bs-body-color);
+  overflow: auto;
+  white-space: pre;
+}
+
+.highlighted-editor__input:focus {
+  outline: none;
+}
+
+.highlighted-editor__input--overlay {
+  color: transparent;
+  caret-color: var(--bs-body-color);
+  -webkit-text-fill-color: transparent;
+}
+
+.highlighted-editor__input::selection {
+  background: rgba(var(--bs-primary-rgb), 0.28);
+}
+
+.highlighted-editor__highlight {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.highlighted-editor__highlight .shiki {
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0 !important;
+  padding: 0.75rem !important;
+  background-color: #fff !important;
+}
+
+.highlighted-editor__highlight .shiki code {
+  display: block;
+  min-height: 100%;
+}
