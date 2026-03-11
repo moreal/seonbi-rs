@@ -45,7 +45,13 @@ function RenderView({ state }: { state: AppState }) {
   return <>{parse(content)}</>;
 }
 
-function CodeView({ state, highlighter }: { state: AppState; highlighter: HighlighterCore | null }) {
+function CodeView({
+  state,
+  highlighter,
+}: {
+  state: AppState;
+  highlighter: HighlighterCore | null;
+}) {
   const content = state.result?.content ?? null;
   const contentType = state.result?.contentType ?? null;
 

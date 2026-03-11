@@ -1,15 +1,8 @@
-export type ContentType =
-  | "text/html"
-  | "application/xhtml+xml"
-  | "text/plain"
-  | "text/markdown";
+export type ContentType = "text/html" | "application/xhtml+xml" | "text/plain" | "text/markdown";
 
 export type Preset = "ko-kr" | "ko-kp" | "custom";
 
-export type QuoteOption =
-  | "CurvedQuotes"
-  | "Guillemets"
-  | "CurvedSingleQuotesWithQ";
+export type QuoteOption = "CurvedQuotes" | "Guillemets" | "CurvedSingleQuotesWithQ";
 
 export type CiteOption =
   | "AngleQuotes"
@@ -66,7 +59,12 @@ export interface AppState {
   source: Source;
   preset: Preset;
   lastCustomOptions: CustomOptions;
-  lastTransformation: { source: Source; preset: Preset; customOptions: CustomOptions | null; customDictionary: Record<string, string> } | null;
+  lastTransformation: {
+    source: Source;
+    preset: Preset;
+    customOptions: CustomOptions | null;
+    customDictionary: Record<string, string>;
+  } | null;
   result: TransformResult | null;
   error: string | null;
   sourceTab: string;
@@ -84,7 +82,14 @@ export type Action =
   | { type: "SET_CONTENT_TYPE"; contentType: ContentType }
   | { type: "SET_SOURCE_TAB"; tab: string }
   | { type: "SET_RESULT_TAB"; tab: string }
-  | { type: "TRANSFORM_SUCCESS"; result: TransformResult; source: Source; preset: Preset; customOptions: CustomOptions | null; customDictionary: Record<string, string> }
+  | {
+      type: "TRANSFORM_SUCCESS";
+      result: TransformResult;
+      source: Source;
+      preset: Preset;
+      customOptions: CustomOptions | null;
+      customDictionary: Record<string, string>;
+    }
   | { type: "TRANSFORM_ERROR"; error: string }
   | { type: "SHOW_CUSTOM_DICTIONARY" }
   | { type: "CLOSE_CUSTOM_DICTIONARY" }

@@ -12,7 +12,7 @@ interface HighlightedEditorProps {
 
 function syncScrollPosition(
   textarea: HTMLTextAreaElement | null,
-  highlight: HTMLDivElement | null
+  highlight: HTMLDivElement | null,
 ): void {
   if (!textarea || !highlight) return;
   highlight.scrollTop = textarea.scrollTop;
@@ -65,9 +65,7 @@ export function HighlightedEditor({
         onChange={(event) => onChange(event.target.value)}
         onCompositionEnd={() => setIsComposing(false)}
         onCompositionStart={() => setIsComposing(true)}
-        onScroll={() =>
-          syncScrollPosition(textareaRef.current, highlightRef.current)
-        }
+        onScroll={() => syncScrollPosition(textareaRef.current, highlightRef.current)}
       />
     </div>
   );

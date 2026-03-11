@@ -1,7 +1,12 @@
 import { Tab, Tabs } from "react-bootstrap";
 import type { HighlighterCore } from "shiki/core";
 import type { AppState, Action } from "../types";
-import { buildHttpRequestBody, buildWasmExample, buildNodeExample, buildPythonExample } from "../App";
+import {
+  buildHttpRequestBody,
+  buildWasmExample,
+  buildNodeExample,
+  buildPythonExample,
+} from "../App";
 import { CodeExampleTab } from "./CodeExampleTab";
 import { HighlightedEditor } from "./HighlightedEditor";
 
@@ -34,8 +39,7 @@ export function SourcePanel({ state, dispatch, highlighter }: SourcePanelProps) 
     state.source.contentType === "text/html" ||
     state.source.contentType === "application/xhtml+xml";
 
-  const markdownLabel =
-    state.source.contentType === "text/plain" ? "Text" : "Markdown";
+  const markdownLabel = state.source.contentType === "text/plain" ? "Text" : "Markdown";
 
   const textValue =
     state.source.text ??

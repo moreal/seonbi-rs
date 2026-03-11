@@ -1,13 +1,14 @@
 {
   "name": "seonbi-demo",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "npx oxlint src/"
+    "lint": "npx oxlint src/",
+    "fmt": "oxfmt"
   },
   "dependencies": {
     "@seonbi/wasm": "portal:../crates/wasm/pkg",
@@ -23,6 +24,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "oxfmt": "^0.37.0",
     "oxlint": "^0.16.6",
     "typescript": "~5.7.2",
     "vite": "^6.1.0",

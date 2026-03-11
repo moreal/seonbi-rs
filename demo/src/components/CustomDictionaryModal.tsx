@@ -15,15 +15,9 @@ export function CustomDictionaryModal({
   dispatch,
 }: CustomDictionaryModalProps) {
   return (
-    <Modal
-      show={show}
-      onHide={() => dispatch({ type: "CLOSE_CUSTOM_DICTIONARY" })}
-      size="lg"
-    >
+    <Modal show={show} onHide={() => dispatch({ type: "CLOSE_CUSTOM_DICTIONARY" })} size="lg">
       <Modal.Header closeButton>
-        <Modal.Title as="h5">
-          Custom hanja readings ({entryCount})
-        </Modal.Title>
+        <Modal.Title as="h5">Custom hanja readings ({entryCount})</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form.Control

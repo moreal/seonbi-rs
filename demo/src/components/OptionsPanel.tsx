@@ -281,18 +281,14 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
         <Col sm={4}>
           <Form.Select
             disabled={!isCustom}
-            value={isCustom ? opts.cite ?? "" : ""}
+            value={isCustom ? (opts.cite ?? "") : ""}
             onChange={(e) => setCite(e.target.value)}
           >
             <option value="">As is</option>
             <option value="AngleQuotes">Angle quotes</option>
-            <option value="AngleQuotesWithCite">
-              Angle quotes with &lt;cite&gt;
-            </option>
+            <option value="AngleQuotesWithCite">Angle quotes with &lt;cite&gt;</option>
             <option value="CornerBrackets">Corner brackets</option>
-            <option value="CornerBracketsWithCite">
-              Corner brackets with &lt;cite&gt;
-            </option>
+            <option value="CornerBracketsWithCite">Corner brackets with &lt;cite&gt;</option>
           </Form.Select>
         </Col>
       </Row>
@@ -305,9 +301,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
         <Col sm={4}>
           <Form.Select
             disabled={!isCustom}
-            value={
-              isCustom && opts.hanja ? opts.hanja.rendering : ""
-            }
+            value={isCustom && opts.hanja ? opts.hanja.rendering : ""}
             onChange={(e) => setHanjaRendering(e.target.value)}
           >
             <option value="">As is</option>
@@ -316,9 +310,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             <option value="DisambiguatingHanjaInParentheses">
               Disambiguating hanja in parentheses
             </option>
-            <option value="HanjaInRuby">
-              Hanja in &lt;ruby&gt;
-            </option>
+            <option value="HanjaInRuby">Hanja in &lt;ruby&gt;</option>
           </Form.Select>
         </Col>
         <Col sm={2}>
@@ -348,10 +340,7 @@ export function OptionsPanel({ state, dispatch }: OptionsPanelProps) {
             type="checkbox"
             label="South Korean Standard Dictionary"
             disabled={!hanjaActive}
-            checked={
-              hanjaActive &&
-              (opts.hanja?.reading.useDictionaries.has("kr-stdict") ?? false)
-            }
+            checked={hanjaActive && (opts.hanja?.reading.useDictionaries.has("kr-stdict") ?? false)}
             onChange={(e) => toggleKrStdict(e.target.checked)}
           />
         </Col>

@@ -5,11 +5,7 @@ import { transform } from "./wasm";
 import { useWasm } from "./hooks/useWasm";
 import { useShiki } from "./hooks/useShiki";
 import { INITIAL_CONTENT, DEFAULT_CUSTOM_OPTIONS } from "./constants";
-import type {
-  AppState,
-  Action,
-  CustomOptions,
-} from "./types";
+import type { AppState, Action, CustomOptions } from "./types";
 import { renderMarkdown } from "./markdown";
 import { SourcePanel } from "./components/SourcePanel";
 import { ResultPanel } from "./components/ResultPanel";
@@ -64,9 +60,7 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         preset: action.preset,
         lastCustomOptions:
-          action.preset === "custom"
-            ? state.lastCustomOptions
-            : state.lastCustomOptions,
+          action.preset === "custom" ? state.lastCustomOptions : state.lastCustomOptions,
       };
     }
     case "SET_CUSTOM_OPTIONS": {
@@ -81,16 +75,14 @@ function reducer(state: AppState, action: Action): AppState {
         state.source.contentType === "text/html" ||
         state.source.contentType === "application/xhtml+xml";
       const isNewHtml =
-        action.contentType === "text/html" ||
-        action.contentType === "application/xhtml+xml";
+        action.contentType === "text/html" || action.contentType === "application/xhtml+xml";
       return {
         ...state,
         source: {
           ...state.source,
           contentType: action.contentType,
         },
-        sourceTab:
-          isCurrentHtml && !isNewHtml ? "commonmark" : state.sourceTab,
+        sourceTab: isCurrentHtml && !isNewHtml ? "commonmark" : state.sourceTab,
       };
     }
     case "SET_SOURCE_TAB": {
@@ -162,9 +154,7 @@ function reducer(state: AppState, action: Action): AppState {
   }
 }
 
-export function buildConfiguration(
-  state: AppState
-): Configuration {
+export function buildConfiguration(state: AppState): Configuration {
   const contentType = state.source.contentType;
 
   if (state.preset === "ko-kr" || state.preset === "ko-kp") {
@@ -210,11 +200,8 @@ function getCustomOptionsForComparison(state: AppState): CustomOptions | null {
 
 export function buildHttpRequestBody(state: AppState): object {
   const contentType = state.source.contentType;
-  const isHtml =
-    contentType === "text/html" || contentType === "application/xhtml+xml";
-  const content = isHtml
-    ? state.source.html
-    : state.source.text ?? "";
+  const isHtml = contentType === "text/html" || contentType === "application/xhtml+xml";
+  const content = isHtml ? state.source.html : (state.source.text ?? "");
 
   if (state.preset !== "custom") {
     return {
@@ -318,7 +305,7 @@ result = transform(config, input)`;
 
   if (opts.arrow) {
     configArgs.push(
-      `    arrow=ArrowOption(bidir_arrow=${opts.arrow.bidirArrow ? "True" : "False"}, double_arrow=${opts.arrow.doubleArrow ? "True" : "False"}),`
+      `    arrow=ArrowOption(bidir_arrow=${opts.arrow.bidirArrow ? "True" : "False"}, double_arrow=${opts.arrow.doubleArrow ? "True" : "False"}),`,
     );
   }
 
@@ -345,7 +332,7 @@ result = transform(config, input)`;
             initial_sound_law=${opts.hanja.reading.initialSoundLaw ? "True" : "False"},
             use_dictionaries=[${dicts}],${dictArg}
         ),
-    ),`
+    ),`,
     );
   }
 
@@ -356,10 +343,7 @@ result = transform(config, input)`;
   return lines.join("\n");
 }
 
-function buildExampleConfig(
-  state: AppState,
-  _target: "wasm" | "node"
-): string {
+function buildExampleConfig(state: AppState, _target: "wasm" | "node"): string {
   if (state.preset !== "custom") {
     return JSON.stringify(
       {
@@ -367,7 +351,7 @@ function buildExampleConfig(
         preset: state.preset,
       },
       null,
-      2
+      2,
     );
   }
 
@@ -412,12 +396,10 @@ function isSourceUnchanged(state: AppState): boolean {
     last.source.html === state.source.html &&
     last.source.contentType === state.source.contentType &&
     last.preset === state.preset &&
-    JSON.stringify(last.customOptions) ===
-      JSON.stringify(getCustomOptionsForComparison(state)) &&
+    JSON.stringify(last.customOptions) === JSON.stringify(getCustomOptionsForComparison(state)) &&
     (state.preset !== "custom" ||
       !state.lastCustomOptions.hanja ||
-      JSON.stringify(last.customDictionary) ===
-        JSON.stringify(state.customDictionary))
+      JSON.stringify(last.customDictionary) === JSON.stringify(state.customDictionary))
   );
 }
 
@@ -432,9 +414,7 @@ export default function App() {
       const isHtml =
         state.source.contentType === "text/html" ||
         state.source.contentType === "application/xhtml+xml";
-      const input = isHtml
-        ? state.source.html
-        : state.source.text ?? "";
+      const input = isHtml ? state.source.html : (state.source.text ?? "");
       const output = transform(config, input);
       dispatch({
         type: "TRANSFORM_SUCCESS",

@@ -28,7 +28,9 @@ export function useShiki(): { highlighter: HighlighterCore | null } {
   const [highlighter, setHighlighter] = useState<HighlighterCore | null>(null);
 
   useEffect(() => {
-    getHighlighter().then(setHighlighter).catch(() => {});
+    getHighlighter()
+      .then(setHighlighter)
+      .catch(() => {});
   }, []);
 
   return { highlighter };

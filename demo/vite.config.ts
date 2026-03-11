@@ -11,10 +11,7 @@ export default defineConfig({
   },
   server: {
     fs: {
-      allow: [
-        __dirname,
-        path.resolve(__dirname, "../crates/wasm/pkg"),
-      ],
+      allow: [__dirname, path.resolve(__dirname, "../crates/wasm/pkg")],
     },
   },
 });
